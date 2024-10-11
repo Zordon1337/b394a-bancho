@@ -76,7 +76,30 @@ func handleClient(client net.Conn) {
 		Status:   status,
 	}
 
-	Packets.WriteUserStats(player)
+	Packets.WriteUserStats(player, 1)
+	stats2 := Structs.UserStats{
+		UserID:      2,
+		RankedScore: 1337,
+		Accuracy:    1,
+		PlayCount:   0,
+		TotalScore:  1337,
+		Rank:        1,
+	}
+	status2 := Structs.Status{
+		Status:          0,
+		BeatmapUpdate:   false,
+		StatusText:      "",
+		BeatmapChecksum: "",
+		CurrentMods:     0,
+	}
+	player2 := Structs.Player{
+		Username: string(username),
+		Conn:     client,
+		Stats:    stats2,
+		Status:   status2,
+	}
+
+	Packets.WriteUserStats(player2, 1)
 	addPlayer(&player)
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
@@ -93,6 +116,7 @@ func handleClient(client net.Conn) {
 			}
 		}
 	}()
+
 	for {
 
 		header := make([]byte, 7) // int16 + bool + int32
@@ -145,9 +169,10 @@ func handleClient(client net.Conn) {
 			}
 		case 3:
 			{
-				Packets.WriteUserStats(player)
+				Packets.WriteUserStats(player, 2)
 				break
 			}
+
 		default:
 			{
 				fmt.Printf("Packet Type: %d, Bool Flag: %v, Data Length: %d\n", packetType, flag, dataLength)
