@@ -42,7 +42,6 @@ func handleClient(client net.Conn) {
 	}
 	fmt.Printf("Login %s\n", string(initialMessage[:n]))
 	Packets.WriteLoginReply(client)
-	Packets.WriteUserStats(client)
 	Packets.WriteChannelJoinSucess(client, "#osu")
 
 	ticker := time.NewTicker(10 * time.Second)
@@ -102,9 +101,15 @@ func handleClient(client net.Conn) {
 				fmt.Println("Client sent pong")
 				break
 			}
+		case 3:
+			{
+				Packets.WriteUserStats(client)
+				break
+			}
 		default:
 			{
 				fmt.Printf("Packet Type: %d, Bool Flag: %v, Data Length: %d\n", packetType, flag, dataLength)
+				break
 			}
 		}
 	}
