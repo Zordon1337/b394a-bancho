@@ -3,25 +3,39 @@ package Packets
 import (
 	"bytes"
 	"encoding/binary"
-	"net"
+	"socket-server/src/Structs"
 )
 
-func GetStatusUpdate() ([]byte, error) {
+func GetStatusUpdate(user Structs.Player) ([]byte, error) {
 	buffer := new(bytes.Buffer)
-	err := binary.Write(buffer, binary.LittleEndian, byte(0)) // status, Idle for testing
+	err := binary.Write(buffer, binary.LittleEndian, byte(user.Status.Status)) // status, Idle for testing
 	if err != nil {
 		return nil, err
 	}
-	err = binary.Write(buffer, binary.LittleEndian, false) // status, Idle for testing
+	err = binary.Write(buffer, binary.LittleEndian, user.Status.BeatmapUpdate)
 	if err != nil {
 		return nil, err
+	}
+	if user.Status.BeatmapUpdate {
+		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString(user.Status.StatusText))
+		if err != nil {
+			return nil, err
+		}
+		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString(user.Status.BeatmapChecksum))
+		if err != nil {
+			return nil, err
+		}
+		err = binary.Write(buffer, binary.LittleEndian, int32(user.Status.CurrentMods))
+		if err != nil {
+			return nil, err
+		}
 	}
 	return buffer.Bytes(), nil
 }
-func WriteUserStats(client net.Conn) {
+func WriteUserStats(user Structs.Player) {
 	buffer := new(bytes.Buffer)
 
-	err := binary.Write(buffer, binary.LittleEndian, int32(1)) // UserId
+	err := binary.Write(buffer, binary.LittleEndian, int32(user.Stats.UserID)) // UserId
 	if err != nil {
 		return
 	}
@@ -29,7 +43,7 @@ func WriteUserStats(client net.Conn) {
 	if err != nil {
 		return
 	}
-	statusupdate, err := GetStatusUpdate()
+	statusupdate, err := GetStatusUpdate(user)
 	if err != nil {
 		return
 	}
@@ -37,23 +51,23 @@ func WriteUserStats(client net.Conn) {
 	if err != nil {
 		return
 	}
-	err = binary.Write(buffer, binary.LittleEndian, int64(1337420)) // Ranked Score
+	err = binary.Write(buffer, binary.LittleEndian, int64(user.Stats.RankedScore)) // Ranked Score
 	if err != nil {
 		return
 	}
-	err = binary.Write(buffer, binary.LittleEndian, float32(1)) // Accuracy
+	err = binary.Write(buffer, binary.LittleEndian, float32(user.Stats.Accuracy)) // Accuracy
 	if err != nil {
 		return
 	}
-	err = binary.Write(buffer, binary.LittleEndian, int32(0)) // Play count
+	err = binary.Write(buffer, binary.LittleEndian, int32(user.Stats.PlayCount)) // Play count
 	if err != nil {
 		return
 	}
-	err = binary.Write(buffer, binary.LittleEndian, int64(1337420)) // Total Score
+	err = binary.Write(buffer, binary.LittleEndian, int64(user.Stats.TotalScore)) // Total Score
 	if err != nil {
 		return
 	}
-	err = binary.Write(buffer, binary.LittleEndian, int32(0)) // Rank
+	err = binary.Write(buffer, binary.LittleEndian, int32(user.Stats.Rank)) // Rank
 	if err != nil {
 		return
 	}
@@ -61,5 +75,5 @@ func WriteUserStats(client net.Conn) {
 	if err != nil {
 		return
 	}
-	client.Write(resp)
+	user.Conn.Write(resp)
 }

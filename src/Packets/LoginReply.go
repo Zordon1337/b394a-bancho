@@ -6,9 +6,9 @@ import (
 	"net"
 )
 
-func WriteLoginReply(client net.Conn) {
+func WriteLoginReply(client net.Conn, response int32) {
 	buffer := new(bytes.Buffer)
-	err := binary.Write(buffer, binary.LittleEndian, int32(1))
+	err := binary.Write(buffer, binary.LittleEndian, int32(response))
 	if err != nil {
 		return
 	}

@@ -7,10 +7,16 @@ import (
 	"io"
 	"net"
 	"socket-server/src/Packets"
+	"socket-server/src/Structs"
+	"sync"
 	"time"
 )
 
-var addr string = ":13381"
+var (
+	addr      string     = ":13381"
+	players              = make(map[string]*Structs.Player) // Map to hold logged-in players
+	playersMu sync.Mutex                                    // Mutex to synchronize access to the player list
+)
 
 func main() {
 	var ln, err = net.Listen("tcp", addr)
@@ -41,9 +47,30 @@ func handleClient(client net.Conn) {
 		return
 	}
 	fmt.Printf("Login %s\n", string(initialMessage[:n]))
-	Packets.WriteLoginReply(client)
+	Packets.WriteLoginReply(client, 1)
 	Packets.WriteChannelJoinSucess(client, "#osu")
-
+	stats := Structs.UserStats{
+		UserID:      1,
+		RankedScore: 1337,
+		Accuracy:    1,
+		PlayCount:   0,
+		TotalScore:  1337,
+		Rank:        1,
+	}
+	status := Structs.Status{
+		Status:          0,
+		BeatmapUpdate:   false,
+		StatusText:      "",
+		BeatmapChecksum: "",
+		CurrentMods:     0,
+	}
+	player := Structs.Player{
+		Username: "test1",
+		Conn:     client,
+		Stats:    stats,
+		Status:   status,
+	}
+	addPlayer(&player)
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 
@@ -53,7 +80,6 @@ func handleClient(client net.Conn) {
 			case <-ticker.C:
 				Packets.WritePing(client)
 				if err != nil {
-					fmt.Println("Error sending ping to client:", err)
 					return
 				}
 				fmt.Println("Pinged client")
@@ -75,6 +101,7 @@ func handleClient(client net.Conn) {
 
 		if err := binary.Read(buf, binary.LittleEndian, &packetType); err != nil {
 			fmt.Println("Failed to read packet type:", err)
+			removePlayer(player.Username)
 			return
 		}
 		if err := binary.Read(buf, binary.LittleEndian, &flag); err != nil {
@@ -103,7 +130,7 @@ func handleClient(client net.Conn) {
 			}
 		case 3:
 			{
-				Packets.WriteUserStats(client)
+				Packets.WriteUserStats(player)
 				break
 			}
 		default:
@@ -113,4 +140,17 @@ func handleClient(client net.Conn) {
 			}
 		}
 	}
+}
+func addPlayer(player *Structs.Player) {
+	playersMu.Lock()
+	defer playersMu.Unlock()
+	players[player.Username] = player
+	fmt.Printf("Player added: %s\n", player.Username)
+}
+
+func removePlayer(username string) {
+	playersMu.Lock()
+	defer playersMu.Unlock()
+	delete(players, username)
+	fmt.Printf("Player removed: %s\n", username)
 }
