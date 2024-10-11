@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"socket-server/src/Packets"
+	"time"
 )
 
 var addr string = ":13381"
@@ -44,14 +45,30 @@ func handleClient(client net.Conn) {
 	Packets.WriteUserStats(client)
 	Packets.WriteChannelJoinSucess(client, "#osu")
 
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				Packets.WritePing(client)
+				if err != nil {
+					fmt.Println("Error sending ping to client:", err)
+					return
+				}
+				fmt.Println("Pinged client")
+			}
+		}
+	}()
 	for {
+
 		header := make([]byte, 7) // int16 + bool + int32
 		_, err := io.ReadFull(client, header)
 		if err != nil {
 			fmt.Println("Error reading from client:", err)
 			return
 		}
-
 		var packetType int16
 		var flag bool
 		var dataLength int32
@@ -79,7 +96,16 @@ func handleClient(client net.Conn) {
 			fmt.Println("Failed to read packet data:", err)
 			return
 		}
-
-		fmt.Printf("Packet Type: %d, Bool Flag: %v, Data Length: %d\n", packetType, flag, dataLength)
+		switch packetType {
+		case 4:
+			{
+				fmt.Println("Client sent pong")
+				break
+			}
+		default:
+			{
+				fmt.Printf("Packet Type: %d, Bool Flag: %v, Data Length: %d\n", packetType, flag, dataLength)
+			}
+		}
 	}
 }
