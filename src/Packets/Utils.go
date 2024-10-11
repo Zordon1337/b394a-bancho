@@ -26,6 +26,8 @@ func SerializePacket(packet int16, data []byte) ([]byte, error) {
 	}
 	return buffer.Bytes(), nil
 }
+
+// https://github.com/lenforiee/gocho/blob/main/packets/writer.go
 func WriteUleb128(value int) (ret []byte) {
 	var len int
 
@@ -35,7 +37,7 @@ func WriteUleb128(value int) (ret []byte) {
 	}
 
 	for value > 0 {
-		ret = append(ret, 0) // Stupid hack.
+		ret = append(ret, 0)
 		ret[len] = byte(value & 0x7F)
 		value >>= 7
 		if value != 0 {
@@ -46,6 +48,7 @@ func WriteUleb128(value int) (ret []byte) {
 	return ret
 }
 
+// https://github.com/lenforiee/gocho/blob/main/packets/writer.go
 func WriteOsuString(value string) (ret []byte) {
 
 	if value == "" {
