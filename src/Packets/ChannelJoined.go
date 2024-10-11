@@ -8,7 +8,7 @@ import (
 
 func WriteChannelJoinSucess(client net.Conn, channel string) {
 	buffer := new(bytes.Buffer)
-	err := binary.Write(buffer, binary.LittleEndian, []byte(channel))
+	err := binary.Write(buffer, binary.LittleEndian, WriteOsuString(channel))
 	if err != nil {
 		return
 	}
