@@ -75,10 +75,12 @@ func handleClient(client net.Conn) {
 		Stats:    stats,
 		Status:   status,
 	}
+
+	Packets.WriteUserStats(player)
 	addPlayer(&player)
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
-
+	Packets.WriteAnnounce(player.Conn, "Welcome to bancho, Mr. "+player.Username)
 	go func() {
 		for {
 			select {
