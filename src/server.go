@@ -97,6 +97,7 @@ func handleClient(client net.Conn) {
 		_, err := io.ReadFull(client, header)
 		if err != nil {
 			fmt.Println("Error reading from client:", err)
+			removePlayer(player.Username)
 			return
 		}
 		var packetType int16
@@ -111,10 +112,12 @@ func handleClient(client net.Conn) {
 		}
 		if err := binary.Read(buf, binary.LittleEndian, &flag); err != nil {
 			fmt.Println("Failed to read bool flag:", err)
+			removePlayer(player.Username)
 			return
 		}
 		if err := binary.Read(buf, binary.LittleEndian, &dataLength); err != nil {
 			fmt.Println("Failed to read data length:", err)
+			removePlayer(player.Username)
 			return
 		}
 
