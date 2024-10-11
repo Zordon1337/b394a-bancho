@@ -131,6 +131,11 @@ func handleClient(client net.Conn) {
 			return
 		}
 		switch packetType {
+		case 2:
+			{
+				removePlayer(player.Username)
+				return
+			}
 		case 4:
 			{
 				fmt.Println("Client sent pong")
