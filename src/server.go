@@ -8,6 +8,7 @@ import (
 	"net"
 	"socket-server/src/Packets"
 	"socket-server/src/Structs"
+	"strings"
 	"sync"
 	"time"
 )
@@ -46,6 +47,10 @@ func handleClient(client net.Conn) {
 		fmt.Println("Error reading login info", err)
 		return
 	}
+	lines := strings.Split(string(n), "\n")
+	username := lines[0]
+	//md5Hash := lines[1]
+	//clientInfo := lines[2]
 	fmt.Printf("Login %s\n", string(initialMessage[:n]))
 	Packets.WriteLoginReply(client, 1)
 	Packets.WriteChannelJoinSucess(client, "#osu")
@@ -65,7 +70,7 @@ func handleClient(client net.Conn) {
 		CurrentMods:     0,
 	}
 	player := Structs.Player{
-		Username: "test1",
+		Username: username,
 		Conn:     client,
 		Stats:    stats,
 		Status:   status,
