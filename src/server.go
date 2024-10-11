@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
+	"io"
 	"net"
 	"socket-server/src/Packets"
 )
@@ -24,9 +27,59 @@ func main() {
 		}
 		if client != nil {
 			fmt.Println("Client connected, Welcome")
-			Packets.WriteLoginReply(client)
-			Packets.WriteUserStats(client)
-			Packets.WriteChannelJoinSucess(client, "#osu")
+			handleClient(client)
 		}
+	}
+}
+func handleClient(client net.Conn) {
+	defer client.Close()
+	initialMessage := make([]byte, 1024)
+	n, err := client.Read(initialMessage)
+	if err != nil {
+		fmt.Println("Error reading login info", err)
+		return
+	}
+	fmt.Printf("Login %s\n", string(initialMessage[:n]))
+	Packets.WriteLoginReply(client)
+	Packets.WriteUserStats(client)
+	Packets.WriteChannelJoinSucess(client, "#osu")
+
+	for {
+		header := make([]byte, 7) // int16 + bool + int32
+		_, err := io.ReadFull(client, header)
+		if err != nil {
+			fmt.Println("Error reading from client:", err)
+			return
+		}
+
+		var packetType int16
+		var flag bool
+		var dataLength int32
+		buf := bytes.NewReader(header)
+
+		if err := binary.Read(buf, binary.LittleEndian, &packetType); err != nil {
+			fmt.Println("Failed to read packet type:", err)
+			return
+		}
+		if err := binary.Read(buf, binary.LittleEndian, &flag); err != nil {
+			fmt.Println("Failed to read bool flag:", err)
+			return
+		}
+		if err := binary.Read(buf, binary.LittleEndian, &dataLength); err != nil {
+			fmt.Println("Failed to read data length:", err)
+			return
+		}
+
+		if dataLength < 0 || dataLength > 4096 {
+			fmt.Printf("Invalid data length: %d\n", dataLength)
+		}
+
+		data := make([]byte, dataLength)
+		if _, err := io.ReadFull(client, data); err != nil {
+			fmt.Println("Failed to read packet data:", err)
+			return
+		}
+
+		fmt.Printf("Packet Type: %d, Bool Flag: %v, Data Length: %d\n", packetType, flag, dataLength)
 	}
 }
