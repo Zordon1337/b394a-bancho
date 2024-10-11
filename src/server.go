@@ -47,7 +47,7 @@ func handleClient(client net.Conn) {
 		fmt.Println("Error reading login info", err)
 		return
 	}
-	lines := strings.Split(string(n), "\n")
+	lines := strings.Split(string(initialMessage[:n]), "\n")
 	username := lines[0]
 	//md5Hash := lines[1]
 	//clientInfo := lines[2]
@@ -70,7 +70,7 @@ func handleClient(client net.Conn) {
 		CurrentMods:     0,
 	}
 	player := Structs.Player{
-		Username: username,
+		Username: string(username),
 		Conn:     client,
 		Stats:    stats,
 		Status:   status,
