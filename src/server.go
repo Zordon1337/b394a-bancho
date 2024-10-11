@@ -89,7 +89,6 @@ func handleClient(client net.Conn) {
 				if err != nil {
 					return
 				}
-				fmt.Println("Pinged client")
 			}
 		}
 	}()
@@ -141,7 +140,6 @@ func handleClient(client net.Conn) {
 			}
 		case 4:
 			{
-				fmt.Println("Client sent pong")
 				break
 			}
 		case 3:
