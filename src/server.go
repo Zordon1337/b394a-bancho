@@ -14,7 +14,7 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("Socket listening for clients on port 6969")
+	fmt.Println("Socket listening for clients on " + addr)
 	fmt.Println("Lets play osu!")
 	for {
 		client, err := ln.Accept()
