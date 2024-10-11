@@ -93,6 +93,10 @@ func WriteUserStats(user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
+		err = binary.Write(buffer, binary.LittleEndian, byte(0)) // City
+		if err != nil {
+			return
+		}
 	}
 	resp, err := SerializePacket(12, buffer.Bytes())
 	if err != nil {
