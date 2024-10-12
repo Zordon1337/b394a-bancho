@@ -251,6 +251,27 @@ func handleClient(client net.Conn) {
 			{
 				SetSlotStatusById(player.Stats.UserID, player.CurrentMatch, 4)
 			}
+		case 51:
+			{
+
+			}
+		case 52: // Mods
+			{
+				m := player.CurrentMatch
+				buf := bytes.NewReader(data)
+				var mods int16
+				err := binary.Read(buf, binary.LittleEndian, &mods)
+				if err != nil {
+					return
+				}
+				m.ActiveMods = mods
+				for i := 0; i < 8; i++ {
+					if m.SlotId[i] != -1 {
+						plr := GetPlayerById(m.SlotId[i])
+						Packets.WriteMatchUpdate(plr.Conn, *m)
+					}
+				}
+			}
 		case 40:
 			{
 				match := player.CurrentMatch
