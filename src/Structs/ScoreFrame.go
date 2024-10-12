@@ -138,6 +138,5 @@ func WriteScoreFrameToBytes(frame ScoreFrame) []byte {
 	if err != nil {
 		fmt.Println("Error occurred on Time creation: ", err.Error())
 	}
-	fmt.Println(frame.Time, frame.SlotId, frame.Count300, frame.Count100, frame.Count50, frame.CountGeki, frame.CountKatu, frame.CountMiss, frame.TotalScore, frame.MaxCombo, frame.CurrentCombo, frame.Perfect, frame.CurrentHP)
 	return buf.Bytes()
 }
