@@ -108,7 +108,7 @@ func handleClient(client net.Conn) {
 			return
 		}
 		var packetType int16
-		var flag bool
+		var compression bool
 		var dataLength int32
 		buf := bytes.NewReader(header)
 
@@ -117,8 +117,8 @@ func handleClient(client net.Conn) {
 			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
-		if err := binary.Read(buf, binary.LittleEndian, &flag); err != nil {
-			fmt.Println("Failed to read bool flag:", err)
+		if err := binary.Read(buf, binary.LittleEndian, &compression); err != nil {
+			fmt.Println("Failed to read bool compression:", err)
 			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
@@ -164,7 +164,7 @@ func handleClient(client net.Conn) {
 
 		default:
 			{
-				fmt.Printf("Packet Type: %d, Bool Flag: %v, Data Length: %d\n", packetType, flag, dataLength)
+				fmt.Println("Received unhandled packet", packetType)
 				break
 			}
 		}
