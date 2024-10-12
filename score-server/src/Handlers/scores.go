@@ -3,8 +3,10 @@ package Handlers
 import (
 	"fmt"
 	"net/http"
+	"score-server/src/db"
 )
 
 func HandleScores(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "\n1|ZRD|1|1|1|1|1|1|1|1|False|0|1|1")
+
+	fmt.Fprintf(w, db.GetScores(r.URL.Query().Get("c")))
 }
