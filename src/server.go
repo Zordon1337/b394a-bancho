@@ -160,6 +160,8 @@ func handleClient(client net.Conn) {
 						Packets.WriteMessage(player1.Conn, sender, msg, target)
 					}
 				}
+
+				fmt.Println(sender + "->" + target + ": " + msg)
 				break
 			}
 		case 2:
