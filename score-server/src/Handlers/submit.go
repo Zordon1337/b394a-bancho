@@ -30,7 +30,6 @@ func HandleScore(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 		destFile, err := os.Create("./replays/" + strconv.Itoa(int(scoreid)) + ".osr")
-		Utils.LogErr("./replays/" + strconv.Itoa(int(scoreid)) + ".osr")
 		if err != nil {
 			Utils.LogErr("Unable to create destination file")
 			return
