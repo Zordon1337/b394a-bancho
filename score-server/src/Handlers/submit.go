@@ -16,7 +16,7 @@ func HandleScore(w http.ResponseWriter, r *http.Request) {
 	score2 := Utils.FormattedToScore(score)
 	Utils.LogInfo("%s has submitted score", score2.Username)
 
-	if db.IsCorrectCred(score2.Username, password) && !db.IsRestricted(db.GetUserIdByUsername(score2.Username)) {
+	if db.IsCorrectCred(score2.Username, password) && !db.IsRestricted(db.GetUserIdByUsername(score2.Username)) && score2.Pass == "True" {
 		scoreid := db.GetNewScoreId()
 		err := r.ParseMultipartForm(10 << 20)
 		if err != nil {
