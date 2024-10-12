@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"net"
 	"socket-server/src/Structs"
 	"strconv"
 )
@@ -34,7 +35,7 @@ func GetStatusUpdate(user Structs.Player) ([]byte, error) {
 	}
 	return buffer.Bytes(), nil
 }
-func WriteUserStats(user Structs.Player, completeness byte) {
+func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 	buffer := new(bytes.Buffer)
 
 	err := binary.Write(buffer, binary.LittleEndian, int32(user.Stats.UserID)) // UserId
@@ -99,5 +100,5 @@ func WriteUserStats(user Structs.Player, completeness byte) {
 	if err != nil {
 		return
 	}
-	user.Conn.Write(resp)
+	network.Write(resp)
 }

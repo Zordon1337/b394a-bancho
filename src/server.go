@@ -35,7 +35,7 @@ func main() {
 		}
 		if client != nil {
 			fmt.Println("Client connected, Welcome")
-			handleClient(client)
+			go handleClient(client)
 		}
 	}
 }
@@ -52,10 +52,10 @@ func handleClient(client net.Conn) {
 	//md5Hash := lines[1]
 	//clientInfo := lines[2]
 	fmt.Printf("Login %s\n", string(initialMessage[:n]))
-	Packets.WriteLoginReply(client, 1)
+	Packets.WriteLoginReply(client, int32(len(players))+1)
 	Packets.WriteChannelJoinSucess(client, "#osu")
 	stats := Structs.UserStats{
-		UserID:      1,
+		UserID:      int32(len(players)) + 1,
 		RankedScore: 1337,
 		Accuracy:    1,
 		PlayCount:   0,
@@ -76,11 +76,16 @@ func handleClient(client net.Conn) {
 		Status:   status,
 	}
 
-	Packets.WriteUserStats(player, 2)
 	addPlayer(&player)
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
 	Packets.WriteAnnounce(player.Conn, "Welcome to bancho, Mr. "+player.Username)
+	for _, player1 := range players {
+		Packets.WriteUserStats(player1.Conn, player, 2)
+	}
+	for _, player1 := range players {
+		Packets.WriteUserStats(player.Conn, *player1, 2)
+	}
 	go func() {
 		for {
 			select {
@@ -148,7 +153,7 @@ func handleClient(client net.Conn) {
 			}
 		case 3:
 			{
-				Packets.WriteUserStats(player, 2)
+				Packets.WriteUserStats(player.Conn, player, 2)
 				break
 			}
 
