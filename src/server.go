@@ -403,7 +403,7 @@ func handleClient(client net.Conn) {
 					Utils.LogErr(err.Error())
 					break
 				}
-				Utils.LogInfo("Osu! reported an error: ", dat)
+				Utils.LogInfo("Osu! reported an error: %s", dat)
 				break
 			}
 		case 40: // Ready
@@ -425,7 +425,7 @@ func handleClient(client net.Conn) {
 			}
 		default:
 			{
-				Utils.LogWarning("Received unhandled packet", packetType)
+				Utils.LogWarning("Received unhandled packet %s", packetType)
 				break
 			}
 		}
