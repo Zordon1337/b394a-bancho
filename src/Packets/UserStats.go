@@ -53,7 +53,7 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 	if err != nil {
 		return
 	}
-	if true {
+	if completeness > 0 {
 		err = binary.Write(buffer, binary.LittleEndian, int64(user.Stats.RankedScore)) // Ranked Score
 		if err != nil {
 			return
@@ -89,7 +89,7 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString("China")) // City
+		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString("China")) // Country
 		if err != nil {
 			return
 		}
