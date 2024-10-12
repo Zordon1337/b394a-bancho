@@ -104,7 +104,7 @@ func handleClient(client net.Conn) {
 		_, err := io.ReadFull(client, header)
 		if err != nil {
 			fmt.Println("Error reading from client:", err)
-			removePlayer(player.Username)
+			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
 		var packetType int16
@@ -114,17 +114,17 @@ func handleClient(client net.Conn) {
 
 		if err := binary.Read(buf, binary.LittleEndian, &packetType); err != nil {
 			fmt.Println("Failed to read packet type:", err)
-			removePlayer(player.Username)
+			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
 		if err := binary.Read(buf, binary.LittleEndian, &flag); err != nil {
 			fmt.Println("Failed to read bool flag:", err)
-			removePlayer(player.Username)
+			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
 		if err := binary.Read(buf, binary.LittleEndian, &dataLength); err != nil {
 			fmt.Println("Failed to read data length:", err)
-			removePlayer(player.Username)
+			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
 
@@ -164,7 +164,7 @@ func handleClient(client net.Conn) {
 			}
 		case 2:
 			{
-				removePlayer(player.Username)
+				removePlayer(player.Username, player.Stats.UserID)
 				return
 			}
 		case 4:
@@ -192,9 +192,13 @@ func addPlayer(player *Structs.Player) {
 	fmt.Printf("Player added: %s\n", player.Username)
 }
 
-func removePlayer(username string) {
+func removePlayer(username string, id int32) {
 	playersMu.Lock()
 	defer playersMu.Unlock()
 	delete(players, username)
 	fmt.Printf("Player removed: %s\n", username)
+	for _, player1 := range players {
+		Packets.WriteIrcQuit(player1.Conn, username)
+		Packets.WriteUserQuit(player1.Conn, id)
+	}
 }
