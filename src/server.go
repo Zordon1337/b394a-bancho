@@ -385,6 +385,12 @@ func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
 	} else {
 		match.SlotId[newslot] = player.Stats.UserID
 		match.SlotStatus[newslot] = 4
+		for i := 0; i < 8; i++ {
+			if match.SlotId[i] != -1 && match.SlotId[i] != player.Stats.UserID {
+				plr := GetPlayerById(match.SlotId[i])
+				Packets.WriteMatchUpdate(plr.Conn, *match)
+			}
+		}
 		Packets.WriteMatchJoinSuccess(player.Conn, *match)
 		return true
 	}
