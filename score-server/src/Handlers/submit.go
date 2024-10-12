@@ -14,8 +14,8 @@ func HandleScore(w http.ResponseWriter, r *http.Request) {
 	score := r.URL.Query().Get("score")
 	password := r.URL.Query().Get("pass")
 	score2 := Utils.FormattedToScore(score)
-	fmt.Println(Utils.CalculateAccuracy(score2))
-	fmt.Printf("got score submit from %s with acc %f", score2.Username, Utils.CalculateAccuracy(score2))
+	Utils.LogInfo("%s has submitted score", score2.Username)
+
 	if db.IsCorrectCred(score2.Username, password) {
 		scoreid := db.GetNewScoreId()
 		err := r.ParseMultipartForm(10 << 20)
@@ -44,5 +44,7 @@ func HandleScore(w http.ResponseWriter, r *http.Request) {
 		}
 		db.InsertScore(score2, scoreid)
 		db.UpdateRankedScore(score2.Username)
+		db.UpdatePlaycount(score2.Username)
+		db.UpdateTotalScore(score2.Username)
 	}
 }

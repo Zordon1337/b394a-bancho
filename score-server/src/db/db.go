@@ -187,7 +187,7 @@ func GetScores(mapchecksum string) string {
 	return response
 }
 func UpdateRankedScore(user string) {
-	db, err := sql.Open("mysql", connectionstring) // Assuming `connectionstring` is defined elsewhere
+	db, err := sql.Open("mysql", connectionstring)
 	if err != nil {
 		log.Printf("Error connecting to the database: %s", err)
 		return
@@ -224,4 +224,76 @@ func UpdateRankedScore(user string) {
 		rowam++
 	}
 	db.Query("UPDATE `users` SET `ranked_score`= ? WHERE username = ?", rankedscore, user)
+}
+func UpdateTotalScore(user string) {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		log.Printf("Error connecting to the database: %s", err)
+		return
+	}
+	defer db.Close()
+
+	rows, err := db.Query(`
+    SELECT 
+        mapchecksum,
+        TotalScore
+    FROM scores
+    WHERE Username = ?`, user)
+
+	if err != nil {
+		log.Printf("Error executing query: %s", err)
+		return
+	}
+	defer rows.Close()
+	rowam := 1
+	totalscore := 0
+	for rows.Next() {
+		var score Utils.Score
+		err := rows.Scan(
+			&score.FileChecksum,
+			&score.TotalScore,
+		)
+		if err != nil {
+			Utils.LogErr("Error scanning row: %s", err)
+			continue
+		}
+		totalscore += int(score.TotalScore)
+		rowam++
+	}
+	db.Query("UPDATE `users` SET `total_score`= ? WHERE username = ?", totalscore, user)
+}
+func UpdatePlaycount(user string) {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		log.Printf("Error connecting to the database: %s", err)
+		return
+	}
+	defer db.Close()
+
+	rows, err := db.Query(`
+    SELECT 
+        mapchecksum,
+        TotalScore
+    FROM scores
+    WHERE Username = ?`, user)
+
+	if err != nil {
+		log.Printf("Error executing query: %s", err)
+		return
+	}
+	defer rows.Close()
+	rowam := 0
+	for rows.Next() {
+		var score Utils.Score
+		err := rows.Scan(
+			&score.FileChecksum,
+			&score.TotalScore,
+		)
+		if err != nil {
+			Utils.LogErr("Error scanning row: %s", err)
+			continue
+		}
+		rowam++
+	}
+	db.Query("UPDATE `users` SET `playcount`= ? WHERE username = ?", rowam, user)
 }
