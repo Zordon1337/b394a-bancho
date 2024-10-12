@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"net"
 	"socket-server/src/Structs"
+	"socket-server/src/Utils"
 	"strconv"
 )
 
@@ -19,11 +20,11 @@ func GetStatusUpdate(user Structs.Player) ([]byte, error) {
 		return nil, err
 	}
 	if user.Status.BeatmapUpdate {
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString(user.Status.StatusText))
+		err = binary.Write(buffer, binary.LittleEndian, Utils.WriteOsuString(user.Status.StatusText))
 		if err != nil {
 			return nil, err
 		}
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString(user.Status.BeatmapChecksum))
+		err = binary.Write(buffer, binary.LittleEndian, Utils.WriteOsuString(user.Status.BeatmapChecksum))
 		if err != nil {
 			return nil, err
 		}
@@ -77,11 +78,11 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 	}
 	// full
 	if completeness == 2 {
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString(user.Username)) // username
+		err = binary.Write(buffer, binary.LittleEndian, Utils.WriteOsuString(user.Username)) // username
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString(strconv.Itoa(int(user.Stats.UserID)))) // pfp file name
+		err = binary.Write(buffer, binary.LittleEndian, Utils.WriteOsuString(strconv.Itoa(int(user.Stats.UserID)))) // pfp file name
 		if err != nil {
 			return
 		}
@@ -89,12 +90,12 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString("China")) // Country
+		err = binary.Write(buffer, binary.LittleEndian, Utils.WriteOsuString("China")) // Country
 		if err != nil {
 			return
 		}
 	}
-	resp, err := SerializePacket(12, buffer.Bytes())
+	resp, err := Utils.SerializePacket(12, buffer.Bytes())
 	if err != nil {
 		return
 	}

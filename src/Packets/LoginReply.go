@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"net"
+	"socket-server/src/Utils"
 )
 
 func WriteLoginReply(client net.Conn, response int32) {
@@ -12,7 +13,7 @@ func WriteLoginReply(client net.Conn, response int32) {
 	if err != nil {
 		return
 	}
-	resp, err := SerializePacket(5, buffer.Bytes())
+	resp, err := Utils.SerializePacket(5, buffer.Bytes())
 	if err != nil {
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"net"
 	"socket-server/src/Structs"
+	"socket-server/src/Utils"
 )
 
 func WriteMatchUpdate(client net.Conn, match Structs.Match) {
@@ -25,11 +26,11 @@ func WriteMatchUpdate(client net.Conn, match Structs.Match) {
 	if err != nil {
 		return
 	}
-	err = binary.Write(buf, binary.LittleEndian, WriteOsuString(match.GameName))
+	err = binary.Write(buf, binary.LittleEndian, Utils.WriteOsuString(match.GameName))
 	if err != nil {
 		return
 	}
-	err = binary.Write(buf, binary.LittleEndian, WriteOsuString(match.BeatmapName))
+	err = binary.Write(buf, binary.LittleEndian, Utils.WriteOsuString(match.BeatmapName))
 	if err != nil {
 		return
 	}
@@ -37,7 +38,7 @@ func WriteMatchUpdate(client net.Conn, match Structs.Match) {
 	if err != nil {
 		return
 	}
-	err = binary.Write(buf, binary.LittleEndian, WriteOsuString(match.BeatmapChecksum))
+	err = binary.Write(buf, binary.LittleEndian, Utils.WriteOsuString(match.BeatmapChecksum))
 	if err != nil {
 		return
 	}
@@ -53,7 +54,7 @@ func WriteMatchUpdate(client net.Conn, match Structs.Match) {
 			return
 		}
 	}
-	resp, err := SerializePacket(27, buf.Bytes())
+	resp, err := Utils.SerializePacket(27, buf.Bytes())
 	if err != nil {
 		return
 	}

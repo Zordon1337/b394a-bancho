@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"net"
+	"socket-server/src/Utils"
 )
 
 func WriteUserQuit(client net.Conn, userid int32) {
@@ -12,7 +13,7 @@ func WriteUserQuit(client net.Conn, userid int32) {
 	if err != nil {
 		return
 	}
-	resp, err := SerializePacket(13, buf.Bytes())
+	resp, err := Utils.SerializePacket(13, buf.Bytes())
 	if err != nil {
 		return
 	}

@@ -8,6 +8,7 @@ import (
 	"net"
 	"socket-server/src/Packets"
 	"socket-server/src/Structs"
+	"socket-server/src/Utils"
 	"strings"
 	"sync"
 	"time"
@@ -189,12 +190,12 @@ func handleClient(client net.Conn) {
 					fmt.Println("Error occurred on ActiveMods creation: ", err.Error())
 					return
 				}
-				match.GameName, err = Packets.ReadOsuString(buf)
+				match.GameName, err = Utils.ReadOsuString(buf)
 				if err != nil {
 					fmt.Println("Error occurred on GameName creation: ", err.Error())
 					return
 				}
-				match.BeatmapName, err = Packets.ReadOsuString(buf)
+				match.BeatmapName, err = Utils.ReadOsuString(buf)
 				if err != nil {
 					fmt.Println("Error occurred on BeatmapName creation: ", err.Error())
 					return
@@ -204,7 +205,7 @@ func handleClient(client net.Conn) {
 					fmt.Println("Error occurred on BeatmapId creation: ", err.Error())
 					return
 				}
-				match.BeatmapChecksum, err = Packets.ReadOsuString(buf)
+				match.BeatmapChecksum, err = Utils.ReadOsuString(buf)
 				if err != nil {
 					fmt.Println("Error occurred on BeatmapChecksum creation: ", err.Error())
 					return
@@ -215,6 +216,7 @@ func handleClient(client net.Conn) {
 				Packets.WriteMatchJoinSuccess(player.Conn, *match)
 				player.CurrentMatch = match
 				AddMatch(match)
+				break
 			}
 		case 33: // Join Match
 			{
@@ -231,6 +233,7 @@ func handleClient(client net.Conn) {
 				if JoinMatch(&player, match) {
 					player.IsInLobby = false
 				}
+				break
 			}
 		case 31:
 			{ // Join Lobby
@@ -238,20 +241,42 @@ func handleClient(client net.Conn) {
 				for _, match := range MpMatches {
 					Packets.WriteMatchUpdate(player.Conn, *match)
 				}
+				break
 			}
 		case 30:
 			{
 				player.IsInLobby = false
+				break
 			}
 		case 34: // Part Match aka quit match
 			{
 				PartMatch(&player, player.CurrentMatch)
+				break
 			}
 		case 56: // unready
 			{
 				SetSlotStatusById(player.Stats.UserID, player.CurrentMatch, 4)
+				break
 			}
-		case 42:
+		case 45:
+			{
+				m := player.CurrentMatch
+				m.InProgress = true
+				for i := 0; i < 8; i++ {
+					if m.SlotId[i] != -1 {
+						m.SlotStatus[i] = 32 // playing
+					}
+				}
+				for i := 0; i < 8; i++ {
+					if m.SlotId[i] != -1 {
+						plr := GetPlayerById(m.SlotId[i])
+						Packets.WriteMatchUpdate(plr.Conn, *m)
+						Packets.WriteMatchStart(plr.Conn, *m)
+					}
+				}
+				break
+			}
+		case 42: // Beatmap change
 			{
 				buf := bytes.NewReader(data)
 				match := player.CurrentMatch
@@ -275,12 +300,12 @@ func handleClient(client net.Conn) {
 					fmt.Println("Error occurred on ActiveMods creation: ", err.Error())
 					return
 				}
-				match.GameName, err = Packets.ReadOsuString(buf)
+				match.GameName, err = Utils.ReadOsuString(buf)
 				if err != nil {
 					fmt.Println("Error occurred on GameName creation: ", err.Error())
 					return
 				}
-				match.BeatmapName, err = Packets.ReadOsuString(buf)
+				match.BeatmapName, err = Utils.ReadOsuString(buf)
 				if err != nil {
 					fmt.Println("Error occurred on BeatmapName creation: ", err.Error())
 					return
@@ -290,7 +315,7 @@ func handleClient(client net.Conn) {
 					fmt.Println("Error occurred on BeatmapId creation: ", err.Error())
 					return
 				}
-				match.BeatmapChecksum, err = Packets.ReadOsuString(buf)
+				match.BeatmapChecksum, err = Utils.ReadOsuString(buf)
 				if err != nil {
 					fmt.Println("Error occurred on BeatmapChecksum creation: ", err.Error())
 					return
@@ -301,6 +326,7 @@ func handleClient(client net.Conn) {
 						Packets.WriteMatchUpdate(plr.Conn, *match)
 					}
 				}
+				break
 			}
 		case 52: // Mods
 			{
@@ -318,6 +344,18 @@ func handleClient(client net.Conn) {
 						Packets.WriteMatchUpdate(plr.Conn, *m)
 					}
 				}
+				break
+			}
+		case 21:
+			{
+				buf := bytes.NewReader(data)
+				dat, err := Utils.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println(err.Error())
+					break
+				}
+				fmt.Println("Osu! reported an error: ", dat)
+				break
 			}
 		case 40:
 			{
@@ -334,6 +372,7 @@ func handleClient(client net.Conn) {
 						Packets.WriteMatchUpdate(plr.Conn, *match)
 					}
 				}
+				break
 			}
 		default:
 			{
@@ -345,15 +384,15 @@ func handleClient(client net.Conn) {
 }
 func handleMsg(player Structs.Player, data []byte) {
 	buf := bytes.NewReader(data)
-	Packets.ReadOsuString(buf)
+	Utils.ReadOsuString(buf)
 	sender := player.Username // for some reason sender is empty???
-	msg, err := Packets.ReadOsuString(buf)
+	msg, err := Utils.ReadOsuString(buf)
 	if err != nil {
 		fmt.Println("Failed to read msg:", err)
 		return
 	}
 
-	target, err := Packets.ReadOsuString(buf)
+	target, err := Utils.ReadOsuString(buf)
 	if err != nil {
 		fmt.Println("Failed to read target:", err)
 		return
@@ -381,12 +420,12 @@ func handleStatus(player Structs.Player, data []byte) {
 	player.Status.Status = status
 	player.Status.BeatmapUpdate = bmapUpdate
 	if bmapUpdate {
-		statusText, err := Packets.ReadOsuString(buf)
+		statusText, err := Utils.ReadOsuString(buf)
 		if err != nil {
 			fmt.Println("Failed to read statusText:", err)
 			return
 		}
-		beatmapMd5, err := Packets.ReadOsuString(buf)
+		beatmapMd5, err := Utils.ReadOsuString(buf)
 		if err != nil {
 			fmt.Println("Failed to read beatmapMd5:", err)
 			return
@@ -442,6 +481,9 @@ func FindMatchById(id byte) *Structs.Match {
 	return nil
 }
 func FindUserSlotInMatchById(userid int32, match *Structs.Match) int {
+	if match == nil {
+		return 0
+	}
 	for i := 0; i < 8; i++ {
 		if match.SlotId[i] == userid {
 			return i
@@ -458,6 +500,9 @@ func GetPlayerById(userid int32) *Structs.Player {
 	return nil
 }
 func FindSlotForPlayer(match *Structs.Match) int {
+	if match == nil {
+		return 0
+	}
 	for i := 0; i < 8; i++ {
 		if match.SlotId[i] == -1 {
 			return i
@@ -466,6 +511,9 @@ func FindSlotForPlayer(match *Structs.Match) int {
 	return -1
 }
 func SetSlotStatusById(userid int32, match *Structs.Match, newstatus byte) {
+	if match == nil {
+		return
+	}
 	slot := FindUserSlotInMatchById(userid, match)
 	if slot != -1 {
 		match.SlotStatus[slot] = newstatus
@@ -478,6 +526,9 @@ func SetSlotStatusById(userid int32, match *Structs.Match, newstatus byte) {
 	}
 }
 func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
+	if match == nil {
+		return false
+	}
 	newslot := FindSlotForPlayer(match)
 	if newslot == -1 {
 		// match full
@@ -497,6 +548,9 @@ func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
 	}
 }
 func PartMatch(player *Structs.Player, match *Structs.Match) {
+	if match == nil {
+		return
+	}
 	slot := FindUserSlotInMatchById(player.Stats.UserID, match)
 	match.SlotId[slot] = -1
 	match.SlotStatus[slot] = 1

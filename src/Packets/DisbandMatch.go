@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"net"
+	"socket-server/src/Utils"
 )
 
 func WriteDisbandMatch(client net.Conn, matchid int) {
@@ -12,7 +13,7 @@ func WriteDisbandMatch(client net.Conn, matchid int) {
 	if err != nil {
 		return
 	}
-	resp, err := SerializePacket(29, buf.Bytes())
+	resp, err := Utils.SerializePacket(29, buf.Bytes())
 	if err != nil {
 		return
 	}

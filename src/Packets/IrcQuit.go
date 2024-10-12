@@ -5,16 +5,17 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"socket-server/src/Utils"
 )
 
 func WriteIrcQuit(client net.Conn, username string) {
 	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, WriteOsuString(username))
+	err := binary.Write(buf, binary.LittleEndian, Utils.WriteOsuString(username))
 	if err != nil {
 		fmt.Println("An error occurred while sending IrcQuit from " + username)
 		return
 	}
-	resp, err := SerializePacket(10, buf.Bytes())
+	resp, err := Utils.SerializePacket(10, buf.Bytes())
 	if err != nil {
 		return
 	}

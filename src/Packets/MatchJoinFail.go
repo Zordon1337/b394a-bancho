@@ -2,11 +2,12 @@ package Packets
 
 import (
 	"net"
+	"socket-server/src/Utils"
 )
 
 func WriteMatchJoinFail(client net.Conn) {
 
-	resp, err := SerializePacket(38, []byte{})
+	resp, err := Utils.SerializePacket(38, []byte{})
 	if err != nil {
 		return
 	}
