@@ -104,6 +104,13 @@ func handleClient(client net.Conn) {
 		for {
 			select {
 			case <-ticker.C:
+				stats2 := db.GetUserFromDatabase(username, password)
+				if stats2.Accuracy != player.Stats.Accuracy || stats2.PlayCount != player.Stats.PlayCount || stats2.RankedScore != player.Stats.RankedScore || stats2.Rank != player.Stats.Rank || stats2.TotalScore != player.Stats.TotalScore {
+					player.Stats = stats2
+					for _, player1 := range players {
+						Packets.WriteUserStats(player1.Conn, player, 2)
+					}
+				}
 				Packets.WritePing(client)
 				if err != nil {
 					return
