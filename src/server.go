@@ -350,6 +350,11 @@ func AddMatch(match *Structs.Match) {
 	MpMatchesMu.Lock()
 	defer MpMatchesMu.Unlock()
 	MpMatches[match.MatchId] = match
+	for _, player1 := range players {
+		if player1.IsInLobby {
+			Packets.WriteMatchUpdate(player1.Conn, *match)
+		}
+	}
 }
 func RemoveMatch(id byte) {
 	MpMatchesMu.Lock()
