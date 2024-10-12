@@ -3,7 +3,6 @@ package Packets
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"net"
 	"socket-server/src/Structs"
 	"strconv"
@@ -78,7 +77,6 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 	}
 	// full
 	if completeness == 2 {
-		fmt.Println("Username is: " + user.Username)
 		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString(user.Username)) // username
 		if err != nil {
 			return
