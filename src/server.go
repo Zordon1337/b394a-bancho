@@ -258,10 +258,11 @@ func handleClient(client net.Conn) {
 				SetSlotStatusById(player.Stats.UserID, player.CurrentMatch, 4)
 				break
 			}
-		case 45:
+		case 45: // Start match
 			{
 				m := player.CurrentMatch
 				m.InProgress = true
+				m.LoadingPeople = int32(CalculatePlayerInLobby(m))
 				for i := 0; i < 8; i++ {
 					if m.SlotId[i] != -1 {
 						m.SlotStatus[i] = 32 // playing
@@ -274,6 +275,36 @@ func handleClient(client net.Conn) {
 						Packets.WriteMatchStart(plr.Conn, *m)
 					}
 				}
+
+				break
+			}
+		case 48:
+			{ // score update
+
+				score := Structs.ReadScoreFrameFromStream(data)
+				score.SlotId = byte(FindUserSlotInMatchById(player.Stats.UserID, player.CurrentMatch))
+				m := player.CurrentMatch
+				for i := 0; i < 8; i++ {
+					if m.SlotId[i] != -1 && m.SlotStatus[i] == 32 { // is player and is playing
+						plr := GetPlayerById(m.SlotId[i])
+						Packets.WriteMatchScoreUpdate(plr.Conn, Structs.WriteScoreFrameToBytes(score))
+					}
+				}
+				break
+			}
+		case 53: // loaded into game
+			{
+				m := player.CurrentMatch
+				m.LoadingPeople--
+				if m.LoadingPeople < 1 { // everybody loaded and we are happy
+					for i := 0; i < 8; i++ {
+						if m.SlotId[i] != -1 && m.SlotStatus[i] == 32 { // is player and is playing
+							plr := GetPlayerById(m.SlotId[i])
+							Packets.MatchAllPlayersLoaded(plr.Conn)
+						}
+					}
+				}
+
 				break
 			}
 		case 42: // Beatmap change
@@ -357,7 +388,7 @@ func handleClient(client net.Conn) {
 				fmt.Println("Osu! reported an error: ", dat)
 				break
 			}
-		case 40:
+		case 40: // Ready
 			{
 				match := player.CurrentMatch
 				if match != nil { // we don't want to ready when we are not in a match
@@ -546,6 +577,15 @@ func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
 		Packets.WriteMatchJoinSuccess(player.Conn, *match)
 		return true
 	}
+}
+func CalculatePlayerInLobby(match *Structs.Match) int {
+	people := 0
+	for i := 0; i < 8; i++ {
+		if match.SlotId[i] != -1 {
+			people++
+		}
+	}
+	return people
 }
 func PartMatch(player *Structs.Player, match *Structs.Match) {
 	if match == nil {

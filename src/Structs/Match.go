@@ -28,6 +28,7 @@ type Match struct {
 	BeatmapChecksum string
 	SlotStatus      [8]byte
 	SlotId          [8]int32
+	LoadingPeople   int32
 }
 
 func GetBytesFromMatch(match *Match) []byte {
