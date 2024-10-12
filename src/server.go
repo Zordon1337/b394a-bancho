@@ -138,6 +138,47 @@ func handleClient(client net.Conn) {
 			return
 		}
 		switch packetType {
+		case 0:
+			{
+				var status byte
+				var bmapUpdate bool
+				var mods uint16
+				buf := bytes.NewReader(data)
+
+				err := binary.Read(buf, binary.LittleEndian, &status)
+				if err != nil {
+					fmt.Println("Error occurred while reading Status from " + player.Username + " " + err.Error())
+				}
+				err = binary.Read(buf, binary.LittleEndian, &bmapUpdate)
+				if err != nil {
+					fmt.Println("Error occurred while reading BeatmapUpdate from " + player.Username + " " + err.Error())
+				}
+				player.Status.Status = status
+				player.Status.BeatmapUpdate = bmapUpdate
+				if bmapUpdate {
+					statusText, err := Packets.ReadOsuString(buf)
+					if err != nil {
+						fmt.Println("Failed to read statusText:", err)
+						return
+					}
+					beatmapMd5, err := Packets.ReadOsuString(buf)
+					if err != nil {
+						fmt.Println("Failed to read beatmapMd5:", err)
+						return
+					}
+
+					err = binary.Read(buf, binary.LittleEndian, &mods)
+					if err != nil {
+						fmt.Println("Error occurred while reading mods from " + player.Username)
+					}
+					player.Status.StatusText = statusText
+					player.Status.BeatmapChecksum = beatmapMd5
+					player.Status.CurrentMods = mods
+				}
+				for _, player1 := range players {
+					Packets.WriteUserStats(player1.Conn, player, 0)
+				}
+			}
 		case 1:
 			{
 				buf := bytes.NewReader(data)
