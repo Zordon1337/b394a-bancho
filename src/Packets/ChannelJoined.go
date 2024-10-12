@@ -7,7 +7,7 @@ import (
 	"socket-server/src/Utils"
 )
 
-func WriteChannelJoinSucess(client net.Conn, channel string) {
+func WriteChannelJoinSuccess(client net.Conn, channel string) {
 	buffer := new(bytes.Buffer)
 	err := binary.Write(buffer, binary.LittleEndian, Utils.WriteOsuString(channel))
 	if err != nil {

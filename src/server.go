@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	db "socket-server/src/Database"
 	"socket-server/src/Packets"
 	"socket-server/src/Structs"
 	"socket-server/src/Utils"
@@ -53,20 +54,12 @@ func handleClient(client net.Conn) {
 	}
 	lines := strings.Split(string(initialMessage[:n]), "\n")
 	username := strings.TrimSpace(lines[0])
+	password := strings.TrimSpace(lines[1])
 	//md5Hash := lines[1]
 	build := strings.Split(lines[2], "|")[0]
 	timezone, err := strconv.Atoi(strings.Split(lines[2], "|")[1])
-	Utils.LogInfo(username + " logged in on build " + build)
-	Packets.WriteLoginReply(client, int32(len(players))+1)
-	Packets.WriteChannelJoinSucess(client, "#osu")
-	stats := Structs.UserStats{
-		UserID:      int32(len(players)) + 1,
-		RankedScore: 1337,
-		Accuracy:    1,
-		PlayCount:   0,
-		TotalScore:  1337,
-		Rank:        1,
-	}
+
+	stats := db.GetUserFromDatabase(username, password)
 	status := Structs.Status{
 		Status:          0,
 		BeatmapUpdate:   false,
@@ -82,7 +75,18 @@ func handleClient(client net.Conn) {
 		IsInLobby: false,
 		Timezone:  byte(24 + timezone),
 	}
-
+	if stats.UserID < 1 {
+		Utils.LogInfo(username + " attempted to login with invalid password")
+		Packets.WriteLoginReply(client, -1)
+		return
+	}
+	Utils.LogInfo(username + " logged in on build " + build)
+	Packets.WriteLoginReply(client, int32(len(players))+1)
+	Packets.WriteChannelJoinSuccess(client, "#osu")
+	if db.IsRestricted(stats.UserID) {
+		Packets.WriteMessage(client, "BanchoBot", "You are restricted, because of that you can't submit any new scores", player.Username)
+	}
+	db.UpdateLastOnline(player.Username)
 	addPlayer(&player)
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
