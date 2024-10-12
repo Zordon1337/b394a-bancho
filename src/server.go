@@ -76,7 +76,7 @@ func handleClient(client net.Conn) {
 		Status:   status,
 	}
 
-	Packets.WriteUserStats(player, 1)
+	Packets.WriteUserStats(player, 2)
 	addPlayer(&player)
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
@@ -133,6 +133,10 @@ func handleClient(client net.Conn) {
 			return
 		}
 		switch packetType {
+		case 1:
+			{
+				break
+			}
 		case 2:
 			{
 				removePlayer(player.Username)

@@ -81,7 +81,7 @@ func WriteUserStats(user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString(string(user.Stats.UserID)+".png")) // pfp file name
+		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString("1.png")) // pfp file name
 		if err != nil {
 			return
 		}
@@ -89,11 +89,7 @@ func WriteUserStats(user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString("")) // City
-		if err != nil {
-			return
-		}
-		err = binary.Write(buffer, binary.LittleEndian, byte(0)) // City
+		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString("Test")) // City
 		if err != nil {
 			return
 		}
