@@ -138,83 +138,25 @@ func handleClient(client net.Conn) {
 			return
 		}
 		switch packetType {
-		case 0:
+		case 0: // status change
 			{
-				var status byte
-				var bmapUpdate bool
-				var mods uint16
-				buf := bytes.NewReader(data)
-
-				err := binary.Read(buf, binary.LittleEndian, &status)
-				if err != nil {
-					fmt.Println("Error occurred while reading Status from " + player.Username + " " + err.Error())
-				}
-				err = binary.Read(buf, binary.LittleEndian, &bmapUpdate)
-				if err != nil {
-					fmt.Println("Error occurred while reading BeatmapUpdate from " + player.Username + " " + err.Error())
-				}
-				player.Status.Status = status
-				player.Status.BeatmapUpdate = bmapUpdate
-				if bmapUpdate {
-					statusText, err := Packets.ReadOsuString(buf)
-					if err != nil {
-						fmt.Println("Failed to read statusText:", err)
-						return
-					}
-					beatmapMd5, err := Packets.ReadOsuString(buf)
-					if err != nil {
-						fmt.Println("Failed to read beatmapMd5:", err)
-						return
-					}
-
-					err = binary.Read(buf, binary.LittleEndian, &mods)
-					if err != nil {
-						fmt.Println("Error occurred while reading mods from " + player.Username)
-					}
-					player.Status.StatusText = statusText
-					player.Status.BeatmapChecksum = beatmapMd5
-					player.Status.CurrentMods = mods
-				}
-				for _, player1 := range players {
-					Packets.WriteUserStats(player1.Conn, player, 0)
-				}
+				handleStatus(player, data)
 			}
-		case 1:
+		case 1: // irc msg
 			{
-				buf := bytes.NewReader(data)
 
-				Packets.ReadOsuString(buf)
-				sender := player.Username // for some reason sender is empty???
-				msg, err := Packets.ReadOsuString(buf)
-				if err != nil {
-					fmt.Println("Failed to read msg:", err)
-					return
-				}
-
-				target, err := Packets.ReadOsuString(buf)
-				if err != nil {
-					fmt.Println("Failed to read target:", err)
-					return
-				}
-				for _, player1 := range players {
-					if player1.Username != player.Username {
-						Packets.WriteMessage(player1.Conn, sender, msg, target)
-					}
-				}
-
-				fmt.Println(sender + "->" + target + ": " + msg)
 				break
 			}
-		case 2:
+		case 2: // osu quit
 			{
 				removePlayer(player.Username, player.Stats.UserID)
 				return
 			}
-		case 4:
+		case 4: // pong
 			{
 				break
 			}
-		case 3:
+		case 3: // user stats request
 			{
 				Packets.WriteUserStats(player.Conn, player, 2)
 				break
@@ -228,12 +170,71 @@ func handleClient(client net.Conn) {
 		}
 	}
 }
+func handleMsg(player Structs.Player, data []byte) {
+	buf := bytes.NewReader(data)
+	Packets.ReadOsuString(buf)
+	sender := player.Username // for some reason sender is empty???
+	msg, err := Packets.ReadOsuString(buf)
+	if err != nil {
+		fmt.Println("Failed to read msg:", err)
+		return
+	}
+
+	target, err := Packets.ReadOsuString(buf)
+	if err != nil {
+		fmt.Println("Failed to read target:", err)
+		return
+	}
+	for _, player1 := range players {
+		if player1.Username != player.Username {
+			Packets.WriteMessage(player1.Conn, sender, msg, target)
+		}
+	}
+	fmt.Println(sender + "->" + target + ": " + msg)
+}
+func handleStatus(player Structs.Player, data []byte) {
+	var status byte
+	var bmapUpdate bool
+	var mods uint16
+	buf := bytes.NewReader(data)
+	err := binary.Read(buf, binary.LittleEndian, &status)
+	if err != nil {
+		fmt.Println("Error occurred while reading Status from " + player.Username + " " + err.Error())
+	}
+	err = binary.Read(buf, binary.LittleEndian, &bmapUpdate)
+	if err != nil {
+		fmt.Println("Error occurred while reading BeatmapUpdate from " + player.Username + " " + err.Error())
+	}
+	player.Status.Status = status
+	player.Status.BeatmapUpdate = bmapUpdate
+	if bmapUpdate {
+		statusText, err := Packets.ReadOsuString(buf)
+		if err != nil {
+			fmt.Println("Failed to read statusText:", err)
+			return
+		}
+		beatmapMd5, err := Packets.ReadOsuString(buf)
+		if err != nil {
+			fmt.Println("Failed to read beatmapMd5:", err)
+			return
+		}
+		err = binary.Read(buf, binary.LittleEndian, &mods)
+		if err != nil {
+			fmt.Println("Error occurred while reading mods from " + player.Username)
+		}
+		player.Status.StatusText = statusText
+		player.Status.BeatmapChecksum = beatmapMd5
+		player.Status.CurrentMods = mods
+	}
+	for _, player1 := range players {
+		Packets.WriteUserStats(player1.Conn, player, 0)
+	}
+}
 func addPlayer(player *Structs.Player) {
 	playersMu.Lock()
 	defer playersMu.Unlock()
 	players[player.Username] = player
 }
-
 func removePlayer(username string, id int32) {
 	playersMu.Lock()
 	defer playersMu.Unlock()
