@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"socket-server/src/Structs"
+	"strconv"
 )
 
 func GetStatusUpdate(user Structs.Player) ([]byte, error) {
@@ -81,15 +82,15 @@ func WriteUserStats(user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString("1.png")) // pfp file name
+		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString(strconv.Itoa(int(user.Stats.UserID)))) // pfp file name
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, byte(int32(26))) // Timezone?
+		err = binary.Write(buffer, binary.LittleEndian, byte(int32(24))) // Timezone
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString("Test")) // City
+		err = binary.Write(buffer, binary.LittleEndian, WriteOsuString("China")) // City
 		if err != nil {
 			return
 		}
