@@ -243,9 +243,13 @@ func handleClient(client net.Conn) {
 			{
 				player.IsInLobby = false
 			}
-		case 34:
+		case 34: // Part Match aka quit match
 			{
 				PartMatch(&player, player.CurrentMatch)
+			}
+		case 56: // unready
+			{
+				SetSlotStatusById(player.Stats.UserID, player.CurrentMatch, 4)
 			}
 		case 40:
 			{
@@ -393,7 +397,18 @@ func FindSlotForPlayer(match *Structs.Match) int {
 	}
 	return -1
 }
-
+func SetSlotStatusById(userid int32, match *Structs.Match, newstatus byte) {
+	slot := FindUserSlotInMatchById(userid, match)
+	if slot != -1 {
+		match.SlotStatus[slot] = newstatus
+	}
+	for i := 0; i < 8; i++ {
+		if match.SlotId[i] != -1 {
+			plr := GetPlayerById(match.SlotId[i])
+			Packets.WriteMatchUpdate(plr.Conn, *match)
+		}
+	}
+}
 func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
 	newslot := FindSlotForPlayer(match)
 	if newslot == -1 {
