@@ -148,7 +148,7 @@ func handleClient(client net.Conn) {
 			}
 		case 3:
 			{
-				Packets.WriteUserStats(player, 1)
+				Packets.WriteUserStats(player, 2)
 				break
 			}
 
