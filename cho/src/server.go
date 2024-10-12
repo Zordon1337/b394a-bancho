@@ -91,7 +91,7 @@ func handleClient(client net.Conn) {
 	}
 	db.UpdateLastOnline(player.Username)
 	addPlayer(&player)
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	Packets.WriteAnnounce(player.Conn, "Welcome to bancho, Mr. "+player.Username)
 	for _, player1 := range players {
