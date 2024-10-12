@@ -84,7 +84,7 @@ func handleClient(client net.Conn) {
 		return
 	}
 	Utils.LogInfo(username + " logged in on build " + build)
-	Packets.WriteLoginReply(client, int32(len(players))+1)
+	Packets.WriteLoginReply(client, player.Stats.UserID)
 	Packets.WriteChannelJoinSuccess(client, "#osu")
 	if db.IsRestricted(stats.UserID) {
 		Packets.WriteMessage(client, "BanchoBot", "You are restricted, because of that you can't submit any new scores", player.Username)
