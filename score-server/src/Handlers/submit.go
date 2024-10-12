@@ -6,15 +6,18 @@ import (
 	"net/http"
 	"os"
 	"score-server/src/Utils"
+	"score-server/src/db"
+	"strconv"
 )
 
 func HandleScore(w http.ResponseWriter, r *http.Request) {
 	score := r.URL.Query().Get("score")
-	//password := r.URL.Query().Get("pass")
+	password := r.URL.Query().Get("pass")
 	score2 := Utils.FormattedToScore(score)
 	fmt.Println(Utils.CalculateAccuracy(score2))
 	fmt.Printf("got score submit from %s with acc %f", score2.Username, Utils.CalculateAccuracy(score2))
-	if true {
+	if db.IsCorrectCred(score2.Username, password) {
+		scoreid := db.GetNewScoreId()
 		err := r.ParseMultipartForm(10 << 20)
 		if err != nil {
 			fmt.Print("Unable to parse form", http.StatusBadRequest)
@@ -22,22 +25,23 @@ func HandleScore(w http.ResponseWriter, r *http.Request) {
 		}
 		file, _, err := r.FormFile("score")
 		if err != nil {
-			fmt.Print("Unable to get file from form", http.StatusBadRequest)
+			Utils.LogErr("Unable to get file from form")
 			return
 		}
 		defer file.Close()
-		destFile, err := os.Create("./test.osr")
+		destFile, err := os.Create("./replays/" + strconv.Itoa(int(scoreid)) + ".osr")
+		Utils.LogErr("./replays/" + strconv.Itoa(int(scoreid)) + ".osr")
 		if err != nil {
-			fmt.Print("Unable to create destination file", http.StatusInternalServerError)
+			Utils.LogErr("Unable to create destination file")
 			return
 		}
 		defer destFile.Close()
 
 		_, err = io.Copy(destFile, file)
 		if err != nil {
-			fmt.Print("Failed to save file", http.StatusInternalServerError)
+			Utils.LogErr("Failed to save replay")
 			return
 		}
-
+		db.InsertScore(score2, scoreid)
 	}
 }

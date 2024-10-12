@@ -23,21 +23,21 @@ type Score struct {
 	Pass                string
 }
 
-func getInt(val string) int32 {
+func GetInt(val string) int32 {
 	val1, err := strconv.Atoi(val)
 	if err != nil {
 		return 0
 	}
 	return int32(val1)
 }
-func getInt64(val string) int64 {
+func GetInt64(val string) int64 {
 	val1, err := strconv.Atoi(val)
 	if err != nil {
 		return 0
 	}
 	return int64(val1)
 }
-func getBool(bo string) bool {
+func GetBool(bo string) bool {
 	bo1, err := strconv.ParseBool(bo)
 	if err != nil {
 		return false
@@ -50,15 +50,15 @@ func FormattedToScore(formatted string) Score {
 		FileChecksum:        values[0],
 		Username:            values[1],
 		OnlineScoreChecksum: values[2],
-		Count300:            getInt(values[3]),
-		Count100:            getInt(values[4]),
-		Count50:             getInt(values[5]),
-		CountGeki:           getInt(values[6]),
-		CountKatu:           getInt(values[7]),
-		CountMiss:           getInt(values[8]),
-		TotalScore:          getInt64(values[9]),
-		MaxCombo:            getInt(values[10]),
-		Perfect:             getBool(values[11]),
+		Count300:            GetInt(values[3]),
+		Count100:            GetInt(values[4]),
+		Count50:             GetInt(values[5]),
+		CountGeki:           GetInt(values[6]),
+		CountKatu:           GetInt(values[7]),
+		CountMiss:           GetInt(values[8]),
+		TotalScore:          GetInt64(values[9]),
+		MaxCombo:            GetInt(values[10]),
+		Perfect:             GetBool(values[11]),
 		Ranking:             values[12],
 		EnabledMods:         values[13],
 		Pass:                values[14],
