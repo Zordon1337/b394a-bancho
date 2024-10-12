@@ -144,7 +144,7 @@ func handleClient(client net.Conn) {
 			}
 		case 1: // irc msg
 			{
-
+				handleMsg(player, data)
 				break
 			}
 		case 2: // osu quit
