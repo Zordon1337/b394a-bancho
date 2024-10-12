@@ -217,20 +217,39 @@ func handleClient(client net.Conn) {
 			}
 		case 33: // Join Match
 			{
-				/*buf := bytes.NewReader(data)
-				var matchid int32
-				var password string
+				buf := bytes.NewReader(data)
+				var matchid byte
 				err := binary.Read(buf, binary.LittleEndian, &matchid)
 				if err != nil {
 					fmt.Println("Error occurred on match creation: ", err.Error())
 					return
 				}
-				password, err = Packets.ReadOsuString(buf)
-				if err != nil {
-					fmt.Println("Error occurred on match creation: ", err.Error())
-					return
+				fmt.Printf("Player %s joined match %b", player.Username, matchid)
+				match := FindMatchById(matchid)
+				player.CurrentMatch = match
+				JoinMatch(&player, match)
+			}
+		case 31:
+			{ // Join Lobby
+				for _, match := range MpMatches {
+					Packets.WriteMatchUpdate(player.Conn, *match)
 				}
-				fmt.Println("match joined", matchid, password)*/
+			}
+		case 40:
+			{
+				match := player.CurrentMatch
+				if match != nil { // we don't want to ready when we are not in a match
+					slot := FindUserSlotInMatchById(player.Stats.UserID, match)
+					if slot != -1 { // making sure we actually exist in that match
+						match.SlotStatus[slot] = 8
+					}
+				}
+				for i := 0; i < 8; i++ {
+					if match.SlotId[i] != -1 {
+						plr := GetPlayerById(match.SlotId[i])
+						Packets.WriteMatchUpdate(plr.Conn, *match)
+					}
+				}
 			}
 		default:
 			{
@@ -328,5 +347,45 @@ func RemoveMatch(id byte) {
 func FindMatchById(id byte) *Structs.Match {
 	MpMatchesMu.Lock()
 	defer MpMatchesMu.Unlock()
-	return MpMatches[id]
+	if MpMatches[id] != nil {
+		return MpMatches[id]
+	}
+	return nil
+}
+func FindUserSlotInMatchById(userid int32, match *Structs.Match) int {
+	for i := 0; i < 8; i++ {
+		if match.SlotId[i] == userid {
+			return i
+		}
+	}
+	return -1
+}
+func GetPlayerById(userid int32) *Structs.Player {
+	for _, player := range players {
+		if player.Stats.UserID == userid {
+			return player
+		}
+	}
+	return nil
+}
+func FindSlotForPlayer(match *Structs.Match) int {
+	for i := 0; i < 8; i++ {
+		if match.SlotId[i] == -1 {
+			return i
+		}
+	}
+	return -1
+}
+func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
+	newslot := FindSlotForPlayer(match)
+	if newslot == -1 {
+		// match full
+		Packets.WriteMatchJoinFail(player.Conn)
+		return false
+	} else {
+		match.SlotId[newslot] = player.Stats.UserID
+		match.SlotStatus[newslot] = 4
+		Packets.WriteMatchJoinSuccess(player.Conn, *match)
+		return true
+	}
 }
