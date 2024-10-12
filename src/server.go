@@ -72,10 +72,11 @@ func handleClient(client net.Conn) {
 		CurrentMods:     0,
 	}
 	player := Structs.Player{
-		Username: (username),
-		Conn:     client,
-		Stats:    stats,
-		Status:   status,
+		Username:  (username),
+		Conn:      client,
+		Stats:     stats,
+		Status:    status,
+		IsInLobby: false,
 	}
 
 	addPlayer(&player)
@@ -227,13 +228,20 @@ func handleClient(client net.Conn) {
 				fmt.Printf("Player %s joined match %b", player.Username, matchid)
 				match := FindMatchById(matchid)
 				player.CurrentMatch = match
-				JoinMatch(&player, match)
+				if JoinMatch(&player, match) {
+					player.IsInLobby = false
+				}
 			}
 		case 31:
 			{ // Join Lobby
+				player.IsInLobby = true
 				for _, match := range MpMatches {
 					Packets.WriteMatchUpdate(player.Conn, *match)
 				}
+			}
+		case 30:
+			{
+				player.IsInLobby = false
 			}
 		case 34:
 			{
@@ -380,6 +388,7 @@ func FindSlotForPlayer(match *Structs.Match) int {
 	}
 	return -1
 }
+
 func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
 	newslot := FindSlotForPlayer(match)
 	if newslot == -1 {
@@ -407,6 +416,21 @@ func PartMatch(player *Structs.Player, match *Structs.Match) {
 		if match.SlotId[i] != -1 && match.SlotId[i] != player.Stats.UserID {
 			plr := GetPlayerById(match.SlotId[i])
 			Packets.WriteMatchUpdate(plr.Conn, *match)
+		}
+	}
+	peopleinlobby := 0
+	for i := 0; i < 8; i++ {
+		if match.SlotId[i] != -1 {
+			peopleinlobby++
+		}
+	}
+	if peopleinlobby == 0 {
+		// lobby empty, delete it
+		RemoveMatch(match.MatchId)
+		for _, player1 := range players {
+			if player1.IsInLobby {
+				Packets.WriteDisbandMatch(player1.Conn, int(match.MatchId))
+			}
 		}
 	}
 }

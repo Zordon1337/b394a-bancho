@@ -10,4 +10,5 @@ type Player struct {
 	Stats        UserStats
 	Conn         net.Conn
 	CurrentMatch *Match
+	IsInLobby    bool
 }
