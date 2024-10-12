@@ -51,7 +51,7 @@ func handleClient(client net.Conn) {
 	username := strings.TrimSpace(lines[0])
 	//md5Hash := lines[1]
 	build := strings.Split(lines[2], "|")[0]
-	fmt.Printf("%s logged in on build %s", username, build)
+	fmt.Println(username + " logged in on build " + build)
 	Packets.WriteLoginReply(client, int32(len(players))+1)
 	Packets.WriteChannelJoinSucess(client, "#osu")
 	stats := Structs.UserStats{
