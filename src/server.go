@@ -25,19 +25,19 @@ var (
 func main() {
 	var ln, err = net.Listen("tcp", addr)
 	if err != nil {
-		fmt.Println(err.Error())
+		Utils.LogErr(err.Error())
 		return
 	}
-	fmt.Println("Socket listening for clients on " + addr)
-	fmt.Println("Lets play osu!")
+	Utils.LogInfo("Socket listening for clients on " + addr)
+	Utils.LogInfo("Lets play osu!")
 	for {
 		client, err := ln.Accept()
 		if err != nil {
-			fmt.Println(err)
+			Utils.LogErr(err.Error())
 			ln.Close() // a bit brutal but okay
 		}
 		if client != nil {
-			fmt.Println("Client connected, Welcome")
+			Utils.LogInfo("Client connected, Welcome")
 			go handleClient(client)
 		}
 	}
@@ -47,14 +47,14 @@ func handleClient(client net.Conn) {
 	initialMessage := make([]byte, 1024)
 	n, err := client.Read(initialMessage)
 	if err != nil {
-		fmt.Println("Error reading login info", err)
+		Utils.LogErr("Error reading login info", err)
 		return
 	}
 	lines := strings.Split(string(initialMessage[:n]), "\n")
 	username := strings.TrimSpace(lines[0])
 	//md5Hash := lines[1]
 	build := strings.Split(lines[2], "|")[0]
-	fmt.Println(username + " logged in on build " + build)
+	Utils.LogInfo(username + " logged in on build " + build)
 	Packets.WriteLoginReply(client, int32(len(players))+1)
 	Packets.WriteChannelJoinSucess(client, "#osu")
 	stats := Structs.UserStats{
@@ -107,7 +107,7 @@ func handleClient(client net.Conn) {
 		header := make([]byte, 7) // int16 + bool + int32
 		_, err := io.ReadFull(client, header)
 		if err != nil {
-			fmt.Println("Error reading from client:", err)
+			Utils.LogErr("Error reading from client:", err)
 			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
@@ -117,17 +117,17 @@ func handleClient(client net.Conn) {
 		buf := bytes.NewReader(header)
 
 		if err := binary.Read(buf, binary.LittleEndian, &packetType); err != nil {
-			fmt.Println("Failed to read packet type:", err)
+			Utils.LogErr("Failed to read packet type:", err)
 			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
 		if err := binary.Read(buf, binary.LittleEndian, &compression); err != nil {
-			fmt.Println("Failed to read bool compression:", err)
+			Utils.LogErr("Failed to read bool compression:", err)
 			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
 		if err := binary.Read(buf, binary.LittleEndian, &dataLength); err != nil {
-			fmt.Println("Failed to read data length:", err)
+			Utils.LogErr("Failed to read data length:", err)
 			removePlayer(player.Username, player.Stats.UserID)
 			return
 		}
@@ -138,7 +138,7 @@ func handleClient(client net.Conn) {
 
 		data := make([]byte, dataLength)
 		if _, err := io.ReadFull(client, data); err != nil {
-			fmt.Println("Failed to read packet data:", err)
+			Utils.LogErr("Failed to read packet data:", err)
 			return
 		}
 		switch packetType {
@@ -172,47 +172,47 @@ func handleClient(client net.Conn) {
 				match := new(Structs.Match)
 				err := binary.Read(buf, binary.LittleEndian, &match.MatchId)
 				if err != nil {
-					fmt.Println("Error occurred on MatchId creation: ", err.Error())
+					Utils.LogErr("Error occurred on MatchId creation: ", err.Error())
 					return
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.InProgress)
 				if err != nil {
-					fmt.Println("Error occurred on InProgress creation: ", err.Error())
+					Utils.LogErr("Error occurred on InProgress creation: ", err.Error())
 					return
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.MatchType)
 				if err != nil {
-					fmt.Println("Error occurred on MatchType creation: ", err.Error())
+					Utils.LogErr("Error occurred on MatchType creation: ", err.Error())
 					return
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.ActiveMods)
 				if err != nil {
-					fmt.Println("Error occurred on ActiveMods creation: ", err.Error())
+					Utils.LogErr("Error occurred on ActiveMods creation: ", err.Error())
 					return
 				}
 				match.GameName, err = Utils.ReadOsuString(buf)
 				if err != nil {
-					fmt.Println("Error occurred on GameName creation: ", err.Error())
+					Utils.LogErr("Error occurred on GameName creation: ", err.Error())
 					return
 				}
 				match.BeatmapName, err = Utils.ReadOsuString(buf)
 				if err != nil {
-					fmt.Println("Error occurred on BeatmapName creation: ", err.Error())
+					Utils.LogErr("Error occurred on BeatmapName creation: ", err.Error())
 					return
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.BeatmapId)
 				if err != nil {
-					fmt.Println("Error occurred on BeatmapId creation: ", err.Error())
+					Utils.LogErr("Error occurred on BeatmapId creation: ", err.Error())
 					return
 				}
 				match.BeatmapChecksum, err = Utils.ReadOsuString(buf)
 				if err != nil {
-					fmt.Println("Error occurred on BeatmapChecksum creation: ", err.Error())
+					Utils.LogErr("Error occurred on BeatmapChecksum creation: ", err.Error())
 					return
 				}
 				match.SlotStatus = [8]byte{4, 1, 1, 1, 1, 1, 1, 1}
 				match.SlotId = [8]int32{player.Stats.UserID, -1, -1, -1, -1, -1, -1, -1}
-				fmt.Println("match created", match.MatchId, match.InProgress, match.MatchType, match.ActiveMods, match.GameName, match.BeatmapName, match.BeatmapId, match.BeatmapChecksum)
+				Utils.LogErr("match created", match.MatchId, match.InProgress, match.MatchType, match.ActiveMods, match.GameName, match.BeatmapName, match.BeatmapId, match.BeatmapChecksum)
 				Packets.WriteMatchJoinSuccess(player.Conn, *match)
 				player.CurrentMatch = match
 				AddMatch(match)
@@ -224,10 +224,10 @@ func handleClient(client net.Conn) {
 				var matchid byte
 				err := binary.Read(buf, binary.LittleEndian, &matchid)
 				if err != nil {
-					fmt.Println("Error occurred on match creation: ", err.Error())
+					Utils.LogErr("Error occurred on match creation: ", err.Error())
 					return
 				}
-				fmt.Printf("Player %s joined match %b", player.Username, matchid)
+				Utils.LogInfo("Player %s joined match %b", player.Username, matchid)
 				match := FindMatchById(matchid)
 				player.CurrentMatch = match
 				if JoinMatch(&player, match) {
@@ -328,42 +328,42 @@ func handleClient(client net.Conn) {
 				match := player.CurrentMatch
 				err := binary.Read(buf, binary.LittleEndian, &match.MatchId)
 				if err != nil {
-					fmt.Println("Error occurred on MatchId creation: ", err.Error())
+					Utils.LogErr("Error occurred on MatchId creation: ", err.Error())
 					return
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.InProgress)
 				if err != nil {
-					fmt.Println("Error occurred on InProgress creation: ", err.Error())
+					Utils.LogErr("Error occurred on InProgress creation: ", err.Error())
 					return
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.MatchType)
 				if err != nil {
-					fmt.Println("Error occurred on MatchType creation: ", err.Error())
+					Utils.LogErr("Error occurred on MatchType creation: ", err.Error())
 					return
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.ActiveMods)
 				if err != nil {
-					fmt.Println("Error occurred on ActiveMods creation: ", err.Error())
+					Utils.LogErr("Error occurred on ActiveMods creation: ", err.Error())
 					return
 				}
 				match.GameName, err = Utils.ReadOsuString(buf)
 				if err != nil {
-					fmt.Println("Error occurred on GameName creation: ", err.Error())
+					Utils.LogErr("Error occurred on GameName creation: ", err.Error())
 					return
 				}
 				match.BeatmapName, err = Utils.ReadOsuString(buf)
 				if err != nil {
-					fmt.Println("Error occurred on BeatmapName creation: ", err.Error())
+					Utils.LogErr("Error occurred on BeatmapName creation: ", err.Error())
 					return
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.BeatmapId)
 				if err != nil {
-					fmt.Println("Error occurred on BeatmapId creation: ", err.Error())
+					Utils.LogErr("Error occurred on BeatmapId creation: ", err.Error())
 					return
 				}
 				match.BeatmapChecksum, err = Utils.ReadOsuString(buf)
 				if err != nil {
-					fmt.Println("Error occurred on BeatmapChecksum creation: ", err.Error())
+					Utils.LogErr("Error occurred on BeatmapChecksum creation: ", err.Error())
 					return
 				}
 				for i := 0; i < 8; i++ {
@@ -397,10 +397,10 @@ func handleClient(client net.Conn) {
 				buf := bytes.NewReader(data)
 				dat, err := Utils.ReadOsuString(buf)
 				if err != nil {
-					fmt.Println(err.Error())
+					Utils.LogErr(err.Error())
 					break
 				}
-				fmt.Println("Osu! reported an error: ", dat)
+				Utils.LogInfo("Osu! reported an error: ", dat)
 				break
 			}
 		case 40: // Ready
@@ -422,7 +422,7 @@ func handleClient(client net.Conn) {
 			}
 		default:
 			{
-				fmt.Println("Received unhandled packet", packetType)
+				Utils.LogWarning("Received unhandled packet", packetType)
 				break
 			}
 		}
@@ -434,13 +434,13 @@ func handleMsg(player Structs.Player, data []byte) {
 	sender := player.Username // for some reason sender is empty???
 	msg, err := Utils.ReadOsuString(buf)
 	if err != nil {
-		fmt.Println("Failed to read msg:", err)
+		Utils.LogErr("Failed to read msg:", err)
 		return
 	}
 
 	target, err := Utils.ReadOsuString(buf)
 	if err != nil {
-		fmt.Println("Failed to read target:", err)
+		Utils.LogErr("Failed to read target:", err)
 		return
 	}
 	for _, player1 := range players {
@@ -448,7 +448,7 @@ func handleMsg(player Structs.Player, data []byte) {
 			Packets.WriteMessage(player1.Conn, sender, msg, target)
 		}
 	}
-	fmt.Println(sender + "->" + target + ": " + msg)
+	Utils.LogInfo(sender + "->" + target + ": " + msg)
 }
 func handleStatus(player Structs.Player, data []byte) {
 	var status byte
@@ -457,28 +457,28 @@ func handleStatus(player Structs.Player, data []byte) {
 	buf := bytes.NewReader(data)
 	err := binary.Read(buf, binary.LittleEndian, &status)
 	if err != nil {
-		fmt.Println("Error occurred while reading Status from " + player.Username + " " + err.Error())
+		Utils.LogErr("Error occurred while reading Status from " + player.Username + " " + err.Error())
 	}
 	err = binary.Read(buf, binary.LittleEndian, &bmapUpdate)
 	if err != nil {
-		fmt.Println("Error occurred while reading BeatmapUpdate from " + player.Username + " " + err.Error())
+		Utils.LogErr("Error occurred while reading BeatmapUpdate from " + player.Username + " " + err.Error())
 	}
 	player.Status.Status = status
 	player.Status.BeatmapUpdate = bmapUpdate
 	if bmapUpdate {
 		statusText, err := Utils.ReadOsuString(buf)
 		if err != nil {
-			fmt.Println("Failed to read statusText:", err)
+			Utils.LogErr("Failed to read statusText:", err)
 			return
 		}
 		beatmapMd5, err := Utils.ReadOsuString(buf)
 		if err != nil {
-			fmt.Println("Failed to read beatmapMd5:", err)
+			Utils.LogErr("Failed to read beatmapMd5:", err)
 			return
 		}
 		err = binary.Read(buf, binary.LittleEndian, &mods)
 		if err != nil {
-			fmt.Println("Error occurred while reading mods from " + player.Username)
+			Utils.LogErr("Error occurred while reading mods from " + player.Username)
 		}
 		player.Status.StatusText = statusText
 		player.Status.BeatmapChecksum = beatmapMd5
@@ -497,7 +497,7 @@ func removePlayer(username string, id int32) {
 	playersMu.Lock()
 	defer playersMu.Unlock()
 	delete(players, username)
-	fmt.Printf("Player disconnected: %s\n", username)
+	Utils.LogInfo("Player disconnected: %s\n", username)
 	for _, player1 := range players {
 		Packets.WriteIrcQuit(player1.Conn, username)
 		Packets.WriteUserQuit(player1.Conn, id)
