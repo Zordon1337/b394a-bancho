@@ -162,6 +162,72 @@ func handleClient(client net.Conn) {
 				break
 			}
 
+		case 32: // Create Match
+			{
+				buf := bytes.NewReader(data)
+				match := new(Structs.Match)
+				err := binary.Read(buf, binary.LittleEndian, &match.MatchId)
+				if err != nil {
+					fmt.Println("Error occurred on MatchId creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.InProgress)
+				if err != nil {
+					fmt.Println("Error occurred on InProgress creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.MatchType)
+				if err != nil {
+					fmt.Println("Error occurred on MatchType creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.ActiveMods)
+				if err != nil {
+					fmt.Println("Error occurred on ActiveMods creation: ", err.Error())
+					return
+				}
+				match.GameName, err = Packets.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println("Error occurred on GameName creation: ", err.Error())
+					return
+				}
+				match.BeatmapName, err = Packets.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println("Error occurred on BeatmapName creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.BeatmapId)
+				if err != nil {
+					fmt.Println("Error occurred on BeatmapId creation: ", err.Error())
+					return
+				}
+				match.BeatmapChecksum, err = Packets.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println("Error occurred on BeatmapChecksum creation: ", err.Error())
+					return
+				}
+				match.SlotStatus = [8]byte{4, 1, 1, 1, 1, 1, 1, 1}
+				match.SlotId = [8]int32{player.Stats.UserID, -1, -1, -1, -1, -1, -1, -1}
+				fmt.Println("match created", match.MatchId, match.InProgress, match.MatchType, match.ActiveMods, match.GameName, match.BeatmapName, match.BeatmapId, match.BeatmapChecksum)
+				Packets.WriteMatchJoinSuccess(player.Conn, *match)
+			}
+		case 33: // Join Match
+			{
+				/*buf := bytes.NewReader(data)
+				var matchid int32
+				var password string
+				err := binary.Read(buf, binary.LittleEndian, &matchid)
+				if err != nil {
+					fmt.Println("Error occurred on match creation: ", err.Error())
+					return
+				}
+				password, err = Packets.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println("Error occurred on match creation: ", err.Error())
+					return
+				}
+				fmt.Println("match joined", matchid, password)*/
+			}
 		default:
 			{
 				fmt.Println("Received unhandled packet", packetType)
