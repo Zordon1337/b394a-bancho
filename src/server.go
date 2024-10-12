@@ -212,7 +212,7 @@ func handleClient(client net.Conn) {
 				}
 				match.SlotStatus = [8]byte{4, 1, 1, 1, 1, 1, 1, 1}
 				match.SlotId = [8]int32{player.Stats.UserID, -1, -1, -1, -1, -1, -1, -1}
-				Utils.LogErr("match created", match.MatchId, match.InProgress, match.MatchType, match.ActiveMods, match.GameName, match.BeatmapName, match.BeatmapId, match.BeatmapChecksum)
+				Utils.LogInfo("%s created an match with id %s", player.Username, match.MatchId)
 				Packets.WriteMatchJoinSuccess(player.Conn, *match)
 				player.CurrentMatch = match
 				AddMatch(match)
