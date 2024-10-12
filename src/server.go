@@ -156,7 +156,9 @@ func handleClient(client net.Conn) {
 					return
 				}
 				for _, player1 := range players {
-					Packets.WriteMessage(player1.Conn, sender, msg, target)
+					if player1.Username != player.Username {
+						Packets.WriteMessage(player1.Conn, sender, msg, target)
+					}
 				}
 				break
 			}
