@@ -3,6 +3,8 @@ package Packets
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+	"io"
 )
 
 func SerializePacket(packet int16, data []byte) ([]byte, error) {
@@ -61,4 +63,47 @@ func WriteOsuString(value string) (ret []byte) {
 	}
 
 	return ret
+}
+func ReadUleb128(r *bytes.Reader) (int, error) {
+	var result int
+	var shift uint
+	for {
+		b, err := r.ReadByte()
+		if err != nil {
+			return 0, err
+		}
+		result |= int(b&0x7F) << shift
+		if b&0x80 == 0 {
+			break
+		}
+		shift += 7
+	}
+	return result, nil
+}
+
+func ReadOsuString(r *bytes.Reader) (string, error) {
+	prefix, err := r.ReadByte()
+	if err != nil {
+		return "", err
+	}
+
+	if prefix == 0x00 {
+		// Empty string
+		return "", nil
+	} else if prefix == 0x0B {
+		strLen, err := ReadUleb128(r)
+		if err != nil {
+			return "", err
+		}
+
+		// Read the string data of length strLen
+		strData := make([]byte, strLen)
+		if _, err := io.ReadFull(r, strData); err != nil {
+			return "", err
+		}
+
+		return string(strData), nil
+	}
+
+	return "", fmt.Errorf("invalid osu! string prefix: %x", prefix)
 }

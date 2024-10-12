@@ -70,7 +70,7 @@ func handleClient(client net.Conn) {
 		CurrentMods:     0,
 	}
 	player := Structs.Player{
-		Username: string(username),
+		Username: (username),
 		Conn:     client,
 		Stats:    stats,
 		Status:   status,
@@ -140,6 +140,24 @@ func handleClient(client net.Conn) {
 		switch packetType {
 		case 1:
 			{
+				buf := bytes.NewReader(data)
+
+				Packets.ReadOsuString(buf)
+				sender := player.Username // for some reason sender is empty???
+				msg, err := Packets.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println("Failed to read msg:", err)
+					return
+				}
+
+				target, err := Packets.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println("Failed to read target:", err)
+					return
+				}
+				for _, player1 := range players {
+					Packets.WriteMessage(player1.Conn, sender, msg, target)
+				}
 				break
 			}
 		case 2:
