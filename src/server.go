@@ -251,9 +251,56 @@ func handleClient(client net.Conn) {
 			{
 				SetSlotStatusById(player.Stats.UserID, player.CurrentMatch, 4)
 			}
-		case 51:
+		case 42:
 			{
-
+				buf := bytes.NewReader(data)
+				match := player.CurrentMatch
+				err := binary.Read(buf, binary.LittleEndian, &match.MatchId)
+				if err != nil {
+					fmt.Println("Error occurred on MatchId creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.InProgress)
+				if err != nil {
+					fmt.Println("Error occurred on InProgress creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.MatchType)
+				if err != nil {
+					fmt.Println("Error occurred on MatchType creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.ActiveMods)
+				if err != nil {
+					fmt.Println("Error occurred on ActiveMods creation: ", err.Error())
+					return
+				}
+				match.GameName, err = Packets.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println("Error occurred on GameName creation: ", err.Error())
+					return
+				}
+				match.BeatmapName, err = Packets.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println("Error occurred on BeatmapName creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.BeatmapId)
+				if err != nil {
+					fmt.Println("Error occurred on BeatmapId creation: ", err.Error())
+					return
+				}
+				match.BeatmapChecksum, err = Packets.ReadOsuString(buf)
+				if err != nil {
+					fmt.Println("Error occurred on BeatmapChecksum creation: ", err.Error())
+					return
+				}
+				for i := 0; i < 8; i++ {
+					if match.SlotId[i] != -1 {
+						plr := GetPlayerById(match.SlotId[i])
+						Packets.WriteMatchUpdate(plr.Conn, *match)
+					}
+				}
 			}
 		case 52: // Mods
 			{
