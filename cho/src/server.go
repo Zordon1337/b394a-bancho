@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"socket-server/src/BanchoBot"
 	db "socket-server/src/Database"
 	"socket-server/src/Packets"
 	"socket-server/src/Structs"
@@ -35,6 +36,7 @@ func bancho() {
 	}
 	Utils.LogInfo("Socket listening for clients on " + addr)
 	Utils.LogInfo("Lets play osu!")
+	addPlayer(BanchoBot.GenerateProfile())
 	for {
 		client, err := ln.Accept()
 		if err != nil {
@@ -98,6 +100,7 @@ func handleClient(client net.Conn) {
 		Packets.WriteUserStats(player1.Conn, player, 2)
 	}
 	for _, player1 := range players {
+
 		Packets.WriteUserStats(player.Conn, *player1, 2)
 	}
 	go func() {

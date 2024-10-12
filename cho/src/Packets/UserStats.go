@@ -36,6 +36,9 @@ func GetStatusUpdate(user Structs.Player) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
+	if network == nil {
+		return
+	}
 	buffer := new(bytes.Buffer)
 
 	err := binary.Write(buffer, binary.LittleEndian, int32(user.Stats.UserID)) // UserId

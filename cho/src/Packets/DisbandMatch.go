@@ -8,6 +8,9 @@ import (
 )
 
 func WriteDisbandMatch(client net.Conn, matchid int) {
+	if client == nil {
+		return
+	}
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, int32(matchid))
 	if err != nil {

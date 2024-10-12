@@ -8,6 +8,9 @@ import (
 )
 
 func WriteLoginReply(client net.Conn, response int32) {
+	if client == nil {
+		return
+	}
 	buffer := new(bytes.Buffer)
 	err := binary.Write(buffer, binary.LittleEndian, int32(response))
 	if err != nil {

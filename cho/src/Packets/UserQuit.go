@@ -8,6 +8,9 @@ import (
 )
 
 func WriteUserQuit(client net.Conn, userid int32) {
+	if client == nil {
+		return
+	}
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, userid)
 	if err != nil {

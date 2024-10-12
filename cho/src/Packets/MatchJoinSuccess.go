@@ -9,6 +9,9 @@ import (
 )
 
 func WriteMatchJoinSuccess(client net.Conn, match Structs.Match) {
+	if client == nil {
+		return
+	}
 	buf := new(bytes.Buffer)
 	err := binary.Write(buf, binary.LittleEndian, match.MatchId)
 	if err != nil {
