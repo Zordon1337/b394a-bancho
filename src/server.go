@@ -292,6 +292,21 @@ func handleClient(client net.Conn) {
 				}
 				break
 			}
+		case 50: // Match complete
+			{
+
+				m := player.CurrentMatch
+				for i := 0; i < 8; i++ {
+					if m.SlotId[i] != -1 && m.SlotStatus[i] == 32 { // is player and is playing
+						plr := GetPlayerById(m.SlotId[i])
+						m.SlotStatus[i] = 4
+						m.InProgress = false
+						Packets.WriteMatchUpdate(plr.Conn, *m)
+						Packets.WriteMatchComplete(plr.Conn)
+					}
+				}
+				break
+			}
 		case 53: // loaded into game
 			{
 				m := player.CurrentMatch
