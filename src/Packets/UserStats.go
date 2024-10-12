@@ -86,7 +86,7 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, byte(int32(24))) // Timezone
+		err = binary.Write(buffer, binary.LittleEndian, byte(user.Timezone)) // Timezone
 		if err != nil {
 			return
 		}

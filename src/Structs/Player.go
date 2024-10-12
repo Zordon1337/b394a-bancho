@@ -11,4 +11,5 @@ type Player struct {
 	Conn         net.Conn
 	CurrentMatch *Match
 	IsInLobby    bool
+	Timezone     byte
 }

@@ -9,6 +9,7 @@ import (
 	"socket-server/src/Packets"
 	"socket-server/src/Structs"
 	"socket-server/src/Utils"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -54,6 +55,7 @@ func handleClient(client net.Conn) {
 	username := strings.TrimSpace(lines[0])
 	//md5Hash := lines[1]
 	build := strings.Split(lines[2], "|")[0]
+	timezone, err := strconv.Atoi(strings.Split(lines[2], "|")[1])
 	Utils.LogInfo(username + " logged in on build " + build)
 	Packets.WriteLoginReply(client, int32(len(players))+1)
 	Packets.WriteChannelJoinSucess(client, "#osu")
@@ -78,6 +80,7 @@ func handleClient(client net.Conn) {
 		Stats:     stats,
 		Status:    status,
 		IsInLobby: false,
+		Timezone:  byte(24 + timezone),
 	}
 
 	addPlayer(&player)
