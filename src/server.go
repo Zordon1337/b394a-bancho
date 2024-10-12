@@ -235,6 +235,10 @@ func handleClient(client net.Conn) {
 					Packets.WriteMatchUpdate(player.Conn, *match)
 				}
 			}
+		case 34:
+			{
+				PartMatch(&player, player.CurrentMatch)
+			}
 		case 40:
 			{
 				match := player.CurrentMatch
@@ -393,5 +397,16 @@ func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
 		}
 		Packets.WriteMatchJoinSuccess(player.Conn, *match)
 		return true
+	}
+}
+func PartMatch(player *Structs.Player, match *Structs.Match) {
+	slot := FindUserSlotInMatchById(player.Stats.UserID, match)
+	match.SlotId[slot] = -1
+	match.SlotStatus[slot] = 1
+	for i := 0; i < 8; i++ {
+		if match.SlotId[i] != -1 && match.SlotId[i] != player.Stats.UserID {
+			plr := GetPlayerById(match.SlotId[i])
+			Packets.WriteMatchUpdate(plr.Conn, *match)
+		}
 	}
 }
