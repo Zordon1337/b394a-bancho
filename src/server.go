@@ -189,14 +189,13 @@ func addPlayer(player *Structs.Player) {
 	playersMu.Lock()
 	defer playersMu.Unlock()
 	players[player.Username] = player
-	fmt.Printf("Player added: %s\n", player.Username)
 }
 
 func removePlayer(username string, id int32) {
 	playersMu.Lock()
 	defer playersMu.Unlock()
 	delete(players, username)
-	fmt.Printf("Player removed: %s\n", username)
+	fmt.Printf("Player disconnected: %s\n", username)
 	for _, player1 := range players {
 		Packets.WriteIrcQuit(player1.Conn, username)
 		Packets.WriteUserQuit(player1.Conn, id)
