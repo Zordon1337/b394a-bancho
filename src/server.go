@@ -14,9 +14,11 @@ import (
 )
 
 var (
-	addr      string     = ":13381"
-	players              = make(map[string]*Structs.Player) // Map to hold logged-in players
-	playersMu sync.Mutex                                    // Mutex to synchronize access to the player list
+	addr        string     = ":13381"
+	players                = make(map[string]*Structs.Player) // Map to hold logged-in players
+	playersMu   sync.Mutex                                    // Mutex to synchronize access to the player list
+	MpMatches   = make(map[byte]*Structs.Match)
+	MpMatchesMu sync.Mutex
 )
 
 func main() {
@@ -210,6 +212,8 @@ func handleClient(client net.Conn) {
 				match.SlotId = [8]int32{player.Stats.UserID, -1, -1, -1, -1, -1, -1, -1}
 				fmt.Println("match created", match.MatchId, match.InProgress, match.MatchType, match.ActiveMods, match.GameName, match.BeatmapName, match.BeatmapId, match.BeatmapChecksum)
 				Packets.WriteMatchJoinSuccess(player.Conn, *match)
+				player.CurrentMatch = match
+				AddMatch(match)
 			}
 		case 33: // Join Match
 			{
@@ -310,4 +314,19 @@ func removePlayer(username string, id int32) {
 		Packets.WriteIrcQuit(player1.Conn, username)
 		Packets.WriteUserQuit(player1.Conn, id)
 	}
+}
+func AddMatch(match *Structs.Match) {
+	MpMatchesMu.Lock()
+	defer MpMatchesMu.Unlock()
+	MpMatches[match.MatchId] = match
+}
+func RemoveMatch(id byte) {
+	MpMatchesMu.Lock()
+	defer MpMatchesMu.Unlock()
+	delete(MpMatches, id)
+}
+func FindMatchById(id byte) *Structs.Match {
+	MpMatchesMu.Lock()
+	defer MpMatchesMu.Unlock()
+	return MpMatches[id]
 }

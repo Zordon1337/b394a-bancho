@@ -5,8 +5,9 @@ import (
 )
 
 type Player struct {
-	Username string
-	Status   Status
-	Stats    UserStats
-	Conn     net.Conn
+	Username     string
+	Status       Status
+	Stats        UserStats
+	Conn         net.Conn
+	CurrentMatch *Match
 }
