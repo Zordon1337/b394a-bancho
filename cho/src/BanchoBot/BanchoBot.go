@@ -2,6 +2,7 @@ package BanchoBot
 
 import (
 	"socket-server/src/Structs"
+	"strings"
 )
 
 func GenerateProfile() *Structs.Player {
@@ -29,4 +30,10 @@ func GenerateProfile() *Structs.Player {
 		Timezone:  byte(24),
 	}
 	return &player
+}
+func HandleMsg(sender string, msg string, target string) string {
+	if strings.HasPrefix(msg, "!ping") {
+		return "Pong!"
+	}
+	return ""
 }

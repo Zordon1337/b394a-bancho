@@ -468,6 +468,12 @@ func handleMsg(player Structs.Player, data []byte) {
 			Packets.WriteMessage(player1.Conn, sender, msg, target)
 		}
 	}
+	banchobotthoughts := BanchoBot.HandleMsg(sender, msg, target)
+	if banchobotthoughts != "" && target == "#osu" {
+		for _, player1 := range players {
+			Packets.WriteMessage(player1.Conn, "BanchoBot", banchobotthoughts, "#osu")
+		}
+	}
 	Utils.LogInfo(sender + "->" + target + ": " + msg)
 }
 func handleStatus(player Structs.Player, data []byte) {
