@@ -43,5 +43,6 @@ func HandleScore(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		db.InsertScore(score2, scoreid)
+		db.UpdateRankedScore(score2.Username)
 	}
 }

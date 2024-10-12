@@ -184,6 +184,44 @@ func GetScores(mapchecksum string) string {
 		)
 		rowam++
 	}
-
 	return response
+}
+func UpdateRankedScore(user string) {
+	db, err := sql.Open("mysql", connectionstring) // Assuming `connectionstring` is defined elsewhere
+	if err != nil {
+		log.Printf("Error connecting to the database: %s", err)
+		return
+	}
+	defer db.Close()
+
+	rows, err := db.Query(`
+    SELECT 
+        s.mapchecksum,
+        MAX(s.TotalScore) AS MaxScore
+    FROM scores AS s
+    WHERE s.Username = ?
+    GROUP BY s.mapchecksum
+    ORDER BY MaxScore DESC;`, user)
+
+	if err != nil {
+		log.Printf("Error executing query: %s", err)
+		return
+	}
+	defer rows.Close()
+	rowam := 1
+	rankedscore := 0
+	for rows.Next() {
+		var score Utils.Score
+		err := rows.Scan(
+			&score.FileChecksum,
+			&score.TotalScore,
+		)
+		if err != nil {
+			Utils.LogErr("Error scanning row: %s", err)
+			continue
+		}
+		rankedscore += int(score.TotalScore)
+		rowam++
+	}
+	db.Query("UPDATE `users` SET `ranked_score`= ? WHERE username = ?", rankedscore, user)
 }
