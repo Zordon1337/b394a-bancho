@@ -1,6 +1,8 @@
 package BanchoBot
 
 import (
+	"fmt"
+	db "socket-server/src/Database"
 	"socket-server/src/Structs"
 	"strings"
 )
@@ -34,6 +36,10 @@ func GenerateProfile() *Structs.Player {
 func HandleMsg(sender string, msg string, target string) string {
 	if strings.HasPrefix(msg, "!ping") {
 		return "Pong!"
+	}
+	if strings.HasPrefix(msg, "!whoami") {
+		id := db.GetUserIdByUsername(sender)
+		return fmt.Sprintf("You are %s\nIsAdmin: %t\nIsRestricted: %t\nJoin Date: %s", sender, db.IsAdmin(id), db.IsRestricted(id), db.GetJoinDate(sender))
 	}
 	return ""
 }

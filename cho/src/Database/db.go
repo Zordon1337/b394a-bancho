@@ -12,6 +12,46 @@ import (
 
 var connectionstring string = "test:test@tcp(127.0.0.1:3306)/osu!"
 
+func GetUserIdByUsername(username string) int32 {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	defer db.Close()
+	rows, err := db.Query("SELECT userid FROM users WHERE username = ?", username)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var userid int32
+		err := rows.Scan(userid)
+		if err != nil {
+			return -1
+		}
+		return userid
+	}
+	return -1
+}
+func GetJoinDate(username string) string {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	defer db.Close()
+	rows, err := db.Query("SELECT joindate FROM users WHERE username = ?", username)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var joindate string
+		rows.Scan(&joindate)
+		return joindate
+	}
+	return "unknown"
+}
 func GetUserFromDatabase(username string, password string) Structs.UserStats {
 	user := new(Structs.UserStats)
 	db, err := sql.Open("mysql", connectionstring)
