@@ -41,5 +41,50 @@ func HandleMsg(sender string, msg string, target string) string {
 		id := db.GetUserIdByUsername(sender)
 		return fmt.Sprintf("You are %s\nUserId: %d\nIsAdmin: %t\nIsRestricted: %t\nJoin Date: %s", sender, id, db.IsAdmin(id), db.IsRestricted(id), db.GetJoinDate(sender))
 	}
+	if strings.HasPrefix(msg, "!unrestrict") {
+		id := db.GetUserIdByUsername(sender)
+		if db.IsAdmin(id) {
+			args := strings.Split(msg, " ")
+			if len(args) < 2 {
+				return "Missing arguments! correct command: !restrict <username>"
+			}
+			username := args[1]
+			if db.DoesExist(username) {
+				if !db.IsRestricted(db.GetUserIdByUsername(username)) {
+					return "User is not restricted!"
+				} else {
+					db.UnRestrictUser(username)
+					return "Succesfully removed restriction from" + username
+				}
+			} else {
+				return "User does not exist!"
+			}
+		} else {
+			return "You are not an admin!"
+		}
+	}
+	if strings.HasPrefix(msg, "!restrict") {
+		id := db.GetUserIdByUsername(sender)
+		if db.IsAdmin(id) {
+			args := strings.Split(msg, " ")
+			if len(args) < 3 {
+				return "Missing arguments! correct command: !restrict <username> <reason(without spaces)>"
+			}
+			username := args[1]
+			reason := args[2]
+			if db.DoesExist(username) {
+				if db.IsRestricted(db.GetUserIdByUsername(username)) {
+					return "User is already restricted!"
+				} else {
+					db.RestrictUser(username, sender, reason)
+					return "Succesfully restricted " + username
+				}
+			} else {
+				return "User does not exist!"
+			}
+		} else {
+			return "You are not an admin!"
+		}
+	}
 	return ""
 }
