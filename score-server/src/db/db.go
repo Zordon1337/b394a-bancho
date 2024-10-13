@@ -43,7 +43,7 @@ func GetUserIdByUsername(username string) int32 {
 	defer rows.Close()
 	for rows.Next() {
 		var userid int32
-		err := rows.Scan(userid)
+		err := rows.Scan(&userid)
 		if err != nil {
 			return -1
 		}

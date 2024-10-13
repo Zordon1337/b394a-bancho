@@ -39,7 +39,7 @@ func HandleMsg(sender string, msg string, target string) string {
 	}
 	if strings.HasPrefix(msg, "!whoami") {
 		id := db.GetUserIdByUsername(sender)
-		return fmt.Sprintf("You are %s\nIsAdmin: %t\nIsRestricted: %t\nJoin Date: %s", sender, db.IsAdmin(id), db.IsRestricted(id), db.GetJoinDate(sender))
+		return fmt.Sprintf("You are %s\nUserId: %d\nIsAdmin: %t\nIsRestricted: %t\nJoin Date: %s", sender, id, db.IsAdmin(id), db.IsRestricted(id), db.GetJoinDate(sender))
 	}
 	return ""
 }
