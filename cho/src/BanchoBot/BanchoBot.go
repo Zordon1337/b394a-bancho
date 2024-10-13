@@ -86,5 +86,19 @@ func HandleMsg(sender string, msg string, target string) string {
 			return "You are not an admin!"
 		}
 	}
+	if strings.HasPrefix(msg, "!updatebeatmapstatus") {
+		id := db.GetUserIdByUsername(sender)
+		if db.IsAdmin(id) {
+			args := strings.Split(msg, " ")
+			if len(args) < 3 {
+				return "Missing arguments! correct command: !updatebeatmapstatus <beatmapmd5> <newstatus>"
+			}
+			md5 := args[1]
+			status := args[2]
+			return db.SetStatus(md5, status)
+		} else {
+			return "You are not an admin!"
+		}
+	}
 	return ""
 }

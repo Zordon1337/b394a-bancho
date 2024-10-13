@@ -157,3 +157,69 @@ func IsAdmin(userid int32) bool {
 	}
 	return rowsreturned > 0
 }
+
+/*
+-1 = NotSubmitted
+0 = Pending
+1 = UpdateAvailable
+2 = Ranked?
+3 = Approved
+
+we like only approved and ranked
+*/
+func GetMapStatus(checksum string) string {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		return "-1"
+	}
+	defer db.Close()
+	rows, err := db.Query("SELECT status from beatmaps WHERE checksum = ?", checksum)
+	if err != nil {
+		return "-1"
+	}
+	for rows.Next() {
+		var status string
+		rows.Scan(&status)
+		return status
+	}
+	return "-1"
+}
+
+func DoesMapExistInDB(checksum string) bool {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		return false
+	}
+	defer db.Close()
+	rows, err := db.Query("SELECT status from beatmaps WHERE checksum = ?", checksum)
+	if err != nil {
+		return false
+	}
+	for rows.Next() {
+		var status string
+		rows.Scan(&status)
+		return true
+	}
+	return false
+}
+func IsRanked(checksum string) bool {
+	return GetMapStatus(checksum) == "2" || GetMapStatus(checksum) == "3"
+}
+func SetStatus(checksum string, newstatus string) string {
+	curstatus := GetMapStatus(checksum)
+	if newstatus == curstatus {
+		return "Map already has this status!"
+	}
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		return "Failed to update map"
+	}
+	defer db.Close()
+	if DoesMapExistInDB(checksum) {
+
+		db.Query("UPDATE `beatmaps` SET `status`= ? WHERE checksum = ?", newstatus, checksum)
+	} else {
+		db.Query("INSERT INTO `beatmaps`(`checksum`, `status`) VALUES (?,?)", checksum, newstatus)
+	}
+	return "Successfully updated beatmap"
+}
