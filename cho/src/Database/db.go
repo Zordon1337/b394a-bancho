@@ -61,3 +61,20 @@ func IsRestricted(userid int32) bool {
 	}
 	return rowsreturned > 0
 }
+func IsAdmin(userid int32) bool {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	defer db.Close()
+	rows, err := db.Query("SELECT * FROM admins WHERE userid = ?", userid)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	rowsreturned := 0
+	defer rows.Close()
+	for rows.Next() {
+		rowsreturned++
+	}
+	return rowsreturned > 0
+}
