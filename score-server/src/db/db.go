@@ -202,7 +202,6 @@ func UpdateRankedScore(user string) {
     WHERE s.Username = ?
     GROUP BY s.mapchecksum
     ORDER BY MaxScore DESC;`, user)
-
 	if err != nil {
 		log.Printf("Error executing query: %s", err)
 		return

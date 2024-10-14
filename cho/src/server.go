@@ -442,7 +442,7 @@ func handleClient(client net.Conn) {
 			}
 		default:
 			{
-				Utils.LogWarning("Received unhandled packet %s", packetType)
+				Utils.LogWarning("Received unhandled packet %d", packetType)
 				break
 			}
 		}

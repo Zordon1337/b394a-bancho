@@ -72,6 +72,7 @@ func GetUserFromDatabase(username string, password string) Structs.UserStats {
 	user.UserID = -1
 	return *user
 }
+
 func UpdateLastOnline(username string) {
 	db, err := sql.Open("mysql", connectionstring)
 	if err != nil {
