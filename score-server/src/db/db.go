@@ -344,3 +344,48 @@ func GetMapStatus(checksum string) string {
 func IsRanked(checksum string) bool {
 	return GetMapStatus(checksum) == "2" || GetMapStatus(checksum) == "3"
 }
+func GetTopUsers() ([]map[string]interface{}, error) {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		Utils.LogErr(err.Error())
+		return nil, err
+	}
+	defer db.Close()
+
+	rows, err := db.Query(`
+        SELECT username, ranked_score, total_score, accuracy 
+        FROM users 
+        ORDER BY ranked_score DESC LIMIT 25`)
+	if err != nil {
+		Utils.LogErr(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var topUsers []map[string]interface{}
+	rank := 1
+
+	for rows.Next() {
+		var username string
+		var rankedScore, totalScore int64
+		var accuracy float64
+
+		err := rows.Scan(&username, &rankedScore, &totalScore, &accuracy)
+		if err != nil {
+			Utils.LogErr("Error scanning row: %s", err)
+			continue
+		}
+
+		user := map[string]interface{}{
+			"rank":        fmt.Sprintf("%d", rank),
+			"Username":    username,
+			"RankedScore": fmt.Sprintf("%d", rankedScore),
+			"TotalScore":  fmt.Sprintf("%d", totalScore),
+			"Accuracy":    fmt.Sprintf("%.2f", accuracy),
+		}
+		topUsers = append(topUsers, user)
+		rank++
+	}
+
+	return topUsers, nil
+}

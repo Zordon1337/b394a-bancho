@@ -59,7 +59,7 @@ body {
     border-radius: 5px;
 }
 .content-img {
-    background-image: url(/score-server/src/web/img/background.png);
+    background-image: url(img/background.png);
     background-size: cover; 
     background-position: center;
     background-repeat: no-repeat; 
