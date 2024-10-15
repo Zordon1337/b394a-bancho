@@ -38,6 +38,27 @@ body {
 }
 
 .content {
+    background-color: #1d948e;
+    width: 50%;
+    max-height: 70%;
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    flex-grow: 1; 
+    position: relative;
+    border-radius: 8px;
+    text-align: center;
+}
+.content table {
+    height: 50px;
+    justify-content: center;
+    align-self: center;
+    margin:auto;
+    width: 75%;
+    background-color: #47b9b4;
+    border-radius: 5px;
+}
+.content-img {
     background-image: url(/score-server/src/web/img/background.png);
     background-size: cover; 
     background-position: center;
@@ -52,7 +73,7 @@ body {
 }
 
 
-.content::before {
+.content-img::before {
     content: '';
     position: absolute;
     top: 0;
