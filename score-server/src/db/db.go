@@ -28,7 +28,7 @@ func RegisterUser(username string, password string) error {
 		return fmt.Errorf("failed to prepare statement: %v", err)
 	}
 	defer stmt.Close()
-	now := time.Now().Format(time.RFC3339)
+	now := time.Now().Format("2006-01-02 15:04:05")
 	_, err = stmt.Exec(GetNewUserId(), username, hashedPassword, now, now)
 	if err != nil {
 		return fmt.Errorf("failed to insert user: %v", err)
