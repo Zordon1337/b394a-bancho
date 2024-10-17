@@ -23,6 +23,7 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		}
 		ses.Values["username"] = user
 		ses.Values["password"] = pass
+		ses.Save(r, w)
 	}
 	fmt.Fprintf(w, "SUCCESS")
 }
