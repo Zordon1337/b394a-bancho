@@ -92,14 +92,14 @@ body {
     position: relative; 
     z-index: 2;
 }
-input {
+.content-left input {
     width: 150px;
     height: 40px;
     border: none;
     margin-bottom: 10px;
     box-shadow: 2px 2px 2px 1px rgb(0 0 0 / 20%);
 }
-button {
+.content-left button {
     width: 120px;
     height: 40px;
     border: none;
