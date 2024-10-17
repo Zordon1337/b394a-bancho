@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>retsu - Home Page</title>
+    <link rel="stylesheet" href="css/login.css"> 
+    <script src="js/login.js"></script>
+    <script>
+        function SignUp()
+        {
+            var username = document.getElementById("u").value
+            var password = document.getElementById("p").value
+            Login(username, password)
+        }
+    </script>
+</head>
+<body>
+    <div class="navbar">
+        <span>retsu</span>
+        <div class="nav-buttons">
+            <a href="/"><button>Home</button></a>
+            <a href="/leaderboard"><button>Leaderboards</button></a>
+        </div>
+        <div class="navbar-right">    
+            <a href="/register"><button>Register</button></a>
+            <a href="/login"><button>Login</button></a>
+        </div>
+    </div>
+    <div class="content-img">
+        <div class="content-left">
+            <h2>retsu! Login</h2>
+            <p>Login to access various features</p>
+            <a href="/register">I Don't have an account</a>
+            <input type="text" id="u" placeholder="username"/>
+            <input type="password" id="p" placeholder="password"/>
+            <br><br> <!-- DO NOT TOUCH THIS PLEASE -->
+            <button class="loginbtn" onclick="SignUp();">Login</button>
+        </div>
+        <div class="content-right">
+        </div>
+    </div>
+</body>
+</html>

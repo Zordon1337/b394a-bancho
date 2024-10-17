@@ -1,4 +1,4 @@
-function Register(username, password) {
+function Login(username, password) {
     fetch(`api/v1/login?u=${username}&p=${password}`)
     .then(response => response.text())
     .then(data => {
