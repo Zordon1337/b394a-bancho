@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"score-server/src/Utils"
+	"time"
 
 	"fmt"
 
@@ -12,6 +13,46 @@ import (
 
 var connectionstring string = "test:test@tcp(127.0.0.1:3306)/osu!"
 
+func RegisterUser(username string, password string) error {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		return fmt.Errorf("failed to open connection on db: %v", err)
+	}
+	if IsNameTaken(username) {
+		return fmt.Errorf("User already taken!")
+	}
+	hashedPassword := Utils.HashMD5(password)
+	stmt, err := db.Prepare(`INSERT INTO users (userid, username, password, ranked_score, accuracy, playcount, total_score, rank, lastonline, joindate)
+                             VALUES (?,?, ?, 0, 0.0, 0, 0, 0, ?, ?)`)
+	if err != nil {
+		return fmt.Errorf("failed to prepare statement: %v", err)
+	}
+	defer stmt.Close()
+	now := time.Now().Format(time.RFC3339)
+	_, err = stmt.Exec(GetNewUserId(), username, hashedPassword, now, now)
+	if err != nil {
+		return fmt.Errorf("failed to insert user: %v", err)
+	}
+
+	return nil
+}
+func IsNameTaken(username string) bool {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	defer db.Close()
+	rows, err := db.Query("SELECT * FROM users WHERE username = ?", username)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	rowsreturned := 0
+	defer rows.Close()
+	for rows.Next() {
+		rowsreturned++
+	}
+	return rowsreturned > 0
+}
 func IsCorrectCred(username string, password string) bool {
 	db, err := sql.Open("mysql", connectionstring)
 	if err != nil {
@@ -67,6 +108,23 @@ func IsRestricted(userid int32) bool {
 		rowsreturned++
 	}
 	return rowsreturned > 0
+}
+func GetNewUserId() int32 {
+	db, err := sql.Open("mysql", connectionstring)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	defer db.Close()
+	rows, err := db.Query("SELECT * FROM users")
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	rowsreturned := 0
+	defer rows.Close()
+	for rows.Next() {
+		rowsreturned++
+	}
+	return int32(rowsreturned) + 1
 }
 func GetNewScoreId() int32 {
 	db, err := sql.Open("mysql", connectionstring)
