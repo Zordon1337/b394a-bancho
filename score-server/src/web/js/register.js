@@ -5,6 +5,8 @@ function Register(username, password) {
        if(data.startsWith("ERR")) {
             var dat = data.split('\n')
             alert(dat[1])
+       } else {
+        alert("Successfully registered!")
        }
     })
     .catch(error => console.error('Error registering', error));
