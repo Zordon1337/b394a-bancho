@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+
+body {
+    background-color: #0aa0a0;
+    margin: 0;
+    font-family: "Roboto", sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    background-color: #008080;
+    padding: 10px;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    border-radius: 4px;
+}
+
+.nav-buttons a,
+.navbar-right a {
+    margin-left: 10px;
+}
+
+.navbar button {
+    min-height: 25px;
+    height: 25px;
+    min-width: 100px;
+    background-color: #22d1c8;
+    border: none;
+    color: rgb(49, 49, 49);
+    font-size: 16px;
+}
+
+.content {
+    background-color: #1d948e;
+    width: 50%;
+    max-height: 70%;
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    flex-grow: 1; 
+    position: relative;
+    border-radius: 8px;
+    text-align: center;
+}
+.content table {
+    height: 50px;
+    justify-content: center;
+    align-self: center;
+    margin:auto;
+    width: 75%;
+    background-color: #47b9b4;
+    border-radius: 5px;
+}
+.content-img {
+    width: 50%;
+    max-height: 70%;
+    display: flex;
+    margin: auto;
+    flex-grow: 1; 
+    position: relative;
+    border-radius: 8px;
+}
+
+.content-img::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.151);
+    backdrop-filter: blur(10px); 
+    z-index: 1; 
+    border-radius: 8px;
+}
+
+
+.content-left {
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    text-align: center; 
+    width: 50%;
+    position: relative; 
+    z-index: 2;
+}
+input {
+    width: 150px;
+    height: 40px;
+    border: none;
+    margin-bottom: 10px;
+    box-shadow: 2px 2px 2px 1px rgb(0 0 0 / 20%);
+}
+button {
+    width: 120px;
+    height: 40px;
+    border: none;
+    display: inline-block;
+    border-radius: 5px;
+    box-shadow: 2px 2px 2px 1px rgb(0 0 0 / 20%);
+}
+.registerbtn {
+    background-color: brown;
+}
+.loginbtn {
+    background-color: darkcyan;
+}
+.content-right {
+    text-align: center; 
+    width: 50%; 
+    position: relative;
+    z-index: 2; 
+}
