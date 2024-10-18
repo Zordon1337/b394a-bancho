@@ -19,7 +19,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		res := db.IsCorrectCred(user, Utils.HashMD5(pass))
 		if res {
 			ses.Values["username"] = user
-			ses.Values["password"] = pass
+			ses.Values["password"] = Utils.HashMD5(pass)
 		} else {
 
 			delete(ses.Values, "username")

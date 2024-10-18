@@ -22,7 +22,7 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		ses.Values["username"] = user
-		ses.Values["password"] = pass
+		ses.Values["password"] = Utils.HashMD5(pass)
 		ses.Save(r, w)
 	}
 	fmt.Fprintf(w, "SUCCESS")
