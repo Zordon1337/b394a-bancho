@@ -11,13 +11,17 @@ import (
 )
 
 var connectionstring string = "test:test@tcp(127.0.0.1:3306)/osu!"
+var db *sql.DB
 
-func GetUserIdByUsername(username string) int32 {
-	db, err := sql.Open("mysql", connectionstring)
+func InitDatabase() {
+	var err error
+	db, err = sql.Open("mysql", connectionstring)
 	if err != nil {
 		Utils.LogErr(err.Error())
 	}
-	defer db.Close()
+}
+func GetUserIdByUsername(username string) int32 {
+
 	rows, err := db.Query("SELECT userid FROM users WHERE username = ?", username)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -35,11 +39,7 @@ func GetUserIdByUsername(username string) int32 {
 	return -1
 }
 func GetJoinDate(username string) string {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT joindate FROM users WHERE username = ?", username)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -54,11 +54,7 @@ func GetJoinDate(username string) string {
 }
 func GetUserFromDatabase(username string, password string) Structs.UserStats {
 	user := new(Structs.UserStats)
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT userid, ranked_score, accuracy, playcount, total_score, rank FROM users WHERE username = ? AND password = ?", username, password)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -74,11 +70,7 @@ func GetUserFromDatabase(username string, password string) Structs.UserStats {
 }
 
 func UpdateLastOnline(username string) {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("UPDATE `users` SET `lastonline`= ? WHERE username = ?", time.Now().Format("2006-01-02 15:04:05"), username)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -86,11 +78,7 @@ func UpdateLastOnline(username string) {
 	defer rows.Close()
 }
 func IsRestricted(userid int32) bool {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT * FROM restricts WHERE userid = ?", userid)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -103,11 +91,7 @@ func IsRestricted(userid int32) bool {
 	return rowsreturned > 0
 }
 func DoesExist(username string) bool {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT * FROM users WHERE username = ?", username)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -120,33 +104,22 @@ func DoesExist(username string) bool {
 	return rowsreturned > 0
 }
 func UnRestrictUser(username string) {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-		return
-	}
-	defer db.Close()
 	id := GetUserIdByUsername(username)
 	rows, err := db.Query("DELETE from restricts WHERE userid = ?", id)
+	if err != nil {
+	}
 	defer rows.Close()
 }
 func RestrictUser(username string, admin string, reason string) {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-		return
-	}
-	defer db.Close()
+
 	id := GetUserIdByUsername(username)
 	rows, err := db.Query("INSERT INTO `restricts`(`bandate`, `userid`, `bannedby`, `reason`) VALUES (?,?,?,?)", time.Now().Format("2006-01-02 15:04:05"), id, admin, reason)
+	if err != nil {
+	}
 	defer rows.Close()
 }
 func IsAdmin(userid int32) bool {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT * FROM admins WHERE userid = ?", userid)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -169,11 +142,7 @@ func IsAdmin(userid int32) bool {
 we like only approved and ranked
 */
 func GetMapStatus(checksum string) string {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		return "-1"
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT status from beatmaps WHERE checksum = ?", checksum)
 	if err != nil {
 		return "-1"
@@ -187,11 +156,7 @@ func GetMapStatus(checksum string) string {
 }
 
 func DoesMapExistInDB(checksum string) bool {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		return false
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT status from beatmaps WHERE checksum = ?", checksum)
 	if err != nil {
 		return false
@@ -211,11 +176,7 @@ func SetStatus(checksum string, newstatus string) string {
 	if newstatus == curstatus {
 		return "Map already has this status!"
 	}
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		return "Failed to update map"
-	}
-	defer db.Close()
+
 	if DoesMapExistInDB(checksum) {
 
 		db.Query("UPDATE `beatmaps` SET `status`= ? WHERE checksum = ?", newstatus, checksum)

@@ -18,9 +18,9 @@ import (
 )
 
 var (
-	addr        string     = ":13381"
-	players                = make(map[string]*Structs.Player) // Map to hold logged-in players
-	playersMu   sync.Mutex                                    // Mutex to synchronize access to the player list
+	addr        string = ":13381"
+	players            = make(map[string]*Structs.Player)
+	playersMu   sync.Mutex
 	MpMatches   = make(map[byte]*Structs.Match)
 	MpMatchesMu sync.Mutex
 )
@@ -34,6 +34,7 @@ func bancho() {
 		Utils.LogErr(err.Error())
 		return
 	}
+	db.InitDatabase()
 	Utils.LogInfo("Socket listening for clients on " + addr)
 	Utils.LogInfo("Lets play osu!")
 	addPlayer(BanchoBot.GenerateProfile())
@@ -96,6 +97,7 @@ func handleClient(client net.Conn) {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	Packets.WriteAnnounce(player.Conn, "Welcome to bancho, Mr. "+player.Username)
+	playersMu.Lock()
 	for _, player1 := range players {
 		Packets.WriteUserStats(player1.Conn, player, 2)
 	}
@@ -103,6 +105,7 @@ func handleClient(client net.Conn) {
 
 		Packets.WriteUserStats(player.Conn, *player1, 2)
 	}
+	playersMu.Unlock()
 	go func() {
 		for {
 			select {
@@ -110,9 +113,11 @@ func handleClient(client net.Conn) {
 				stats2 := db.GetUserFromDatabase(username, password)
 				if stats2.Accuracy != player.Stats.Accuracy || stats2.PlayCount != player.Stats.PlayCount || stats2.RankedScore != player.Stats.RankedScore || stats2.Rank != player.Stats.Rank || stats2.TotalScore != player.Stats.TotalScore {
 					player.Stats = stats2
+					playersMu.Lock()
 					for _, player1 := range players {
 						Packets.WriteUserStats(player1.Conn, player, 2)
 					}
+					playersMu.Unlock()
 				}
 				Packets.WritePing(client)
 				if err != nil {
@@ -463,19 +468,23 @@ func handleMsg(player Structs.Player, data []byte) {
 		Utils.LogErr("Failed to read target:", err)
 		return
 	}
+	playersMu.Lock()
 	for _, player1 := range players {
 		if player1.Username != player.Username {
 			Packets.WriteMessage(player1.Conn, sender, msg, target)
 		}
 	}
+	playersMu.Unlock()
 	banchobotthoughts := BanchoBot.HandleMsg(sender, msg, target)
 	if banchobotthoughts != "" && target == "#osu" {
+		playersMu.Lock()
 		for _, player1 := range players {
 			lines := strings.Split(banchobotthoughts, "\n")
 			for i := 0; i < len(lines); i++ {
 				Packets.WriteMessage(player1.Conn, "BanchoBot", lines[i], "#osu")
 			}
 		}
+		playersMu.Unlock()
 	}
 	Utils.LogInfo(sender + "->" + target + ": " + msg)
 }
@@ -513,9 +522,11 @@ func handleStatus(player Structs.Player, data []byte) {
 		player.Status.BeatmapChecksum = beatmapMd5
 		player.Status.CurrentMods = mods
 	}
+	playersMu.Lock()
 	for _, player1 := range players {
 		Packets.WriteUserStats(player1.Conn, player, 0)
 	}
+	playersMu.Unlock()
 }
 func addPlayer(player *Structs.Player) {
 	playersMu.Lock()
@@ -536,11 +547,13 @@ func AddMatch(match *Structs.Match) {
 	MpMatchesMu.Lock()
 	defer MpMatchesMu.Unlock()
 	MpMatches[match.MatchId] = match
+	playersMu.Lock()
 	for _, player1 := range players {
 		if player1.IsInLobby {
 			Packets.WriteMatchUpdate(player1.Conn, *match)
 		}
 	}
+	playersMu.Unlock()
 }
 func RemoveMatch(id byte) {
 	MpMatchesMu.Lock()
@@ -653,10 +666,12 @@ func PartMatch(player *Structs.Player, match *Structs.Match) {
 	if peopleinlobby == 0 {
 		// lobby empty, delete it
 		RemoveMatch(match.MatchId)
+		playersMu.Lock()
 		for _, player1 := range players {
 			if player1.IsInLobby {
 				Packets.WriteDisbandMatch(player1.Conn, int(match.MatchId))
 			}
 		}
+		playersMu.Unlock()
 	}
 }

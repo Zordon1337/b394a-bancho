@@ -104,11 +104,12 @@ func GetNewUserId() int32 {
 	if err != nil {
 		Utils.LogErr(err.Error())
 	}
-	rowsreturned := 0
+	rowsreturned := 1
 	defer rows.Close()
 	for rows.Next() {
 		rowsreturned++
 	}
+	Utils.LogWarning("%d", rowsreturned+1)
 	return int32(rowsreturned) + 1
 }
 func GetNewScoreId() int32 {
@@ -122,7 +123,7 @@ func GetNewScoreId() int32 {
 	for rows.Next() {
 		rowsreturned++
 	}
-	return int32(rowsreturned) + 1
+	return int32(rowsreturned)
 }
 func InsertScore(score Utils.Score, scoreid int32) {
 
