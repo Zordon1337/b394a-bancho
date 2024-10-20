@@ -12,12 +12,17 @@ import (
 )
 
 var connectionstring string = "test:test@tcp(127.0.0.1:3306)/osu!"
+var db *sql.DB
 
-func RegisterUser(username string, password string) error {
-	db, err := sql.Open("mysql", connectionstring)
+func InitDatabase() {
+	var err error
+	db, err = sql.Open("mysql", connectionstring)
 	if err != nil {
-		return fmt.Errorf("failed to open connection on db: %v", err)
+		Utils.LogErr("Failed to create database connection!")
 	}
+}
+func RegisterUser(username string, password string) error {
+
 	if IsNameTaken(username) {
 		return fmt.Errorf("User already taken!")
 	}
@@ -37,11 +42,7 @@ func RegisterUser(username string, password string) error {
 	return nil
 }
 func IsNameTaken(username string) bool {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT * FROM users WHERE username = ?", username)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -54,11 +55,7 @@ func IsNameTaken(username string) bool {
 	return rowsreturned > 0
 }
 func IsCorrectCred(username string, password string) bool {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT * FROM users WHERE username = ? AND password = ?", username, password)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -71,11 +68,7 @@ func IsCorrectCred(username string, password string) bool {
 	return rowsreturned > 0
 }
 func GetUserIdByUsername(username string) int32 {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT userid FROM users WHERE username = ?", username)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -93,11 +86,7 @@ func GetUserIdByUsername(username string) int32 {
 	return -1
 }
 func IsRestricted(userid int32) bool {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT * FROM restricts WHERE userid = ?", userid)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -110,11 +99,7 @@ func IsRestricted(userid int32) bool {
 	return rowsreturned > 0
 }
 func GetNewUserId() int32 {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT * FROM users")
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -127,11 +112,7 @@ func GetNewUserId() int32 {
 	return int32(rowsreturned) + 1
 }
 func GetNewScoreId() int32 {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT * FROM scores")
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -144,25 +125,16 @@ func GetNewScoreId() int32 {
 	return int32(rowsreturned) + 1
 }
 func InsertScore(score Utils.Score, scoreid int32) {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-		return
-	}
-	defer db.Close()
+
 	rows, err := db.Query("INSERT INTO `scores`(`scoreid`, `mapchecksum`,`username`, `OnlineScoreChecksum`, `Count300`, `Count100`, `Count50`, `CountGeki`, `CountKatu`, `CountMiss`, `TotalScore`, `MaxCombo`, `Perfect`, `Ranking`, `EnabledMods`, `Pass`, `Accuracy`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		scoreid, score.FileChecksum, score.Username, score.OnlineScoreChecksum, score.Count300, score.Count100, score.Count50, score.CountGeki, score.CountKatu, score.CountMiss, score.TotalScore, score.MaxCombo, score.Perfect, score.Ranking, score.EnabledMods, score.EnabledMods, Utils.CalculateAccuracy(score))
 	defer rows.Close()
+	if err != nil {
+	}
 }
 
 func GetScores(mapchecksum string) string {
 	var response string
-	db, err := sql.Open("mysql", connectionstring) // Assuming `connectionstring` is defined elsewhere
-	if err != nil {
-		log.Printf("Error connecting to the database: %s", err)
-		return ""
-	}
-	defer db.Close()
 
 	rows, err := db.Query(`
 		SELECT 
@@ -245,12 +217,6 @@ func GetScores(mapchecksum string) string {
 	return response
 }
 func UpdateRankedScore(user string) {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		log.Printf("Error connecting to the database: %s", err)
-		return
-	}
-	defer db.Close()
 
 	rows, err := db.Query(`
     SELECT 
@@ -283,12 +249,6 @@ func UpdateRankedScore(user string) {
 	db.Query("UPDATE `users` SET `ranked_score`= ? WHERE username = ?", rankedscore, user)
 }
 func UpdateTotalScore(user string) {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		log.Printf("Error connecting to the database: %s", err)
-		return
-	}
-	defer db.Close()
 
 	rows, err := db.Query(`
     SELECT 
@@ -320,12 +280,6 @@ func UpdateTotalScore(user string) {
 	db.Query("UPDATE `users` SET `total_score`= ? WHERE username = ?", totalscore, user)
 }
 func UpdatePlaycount(user string) {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		log.Printf("Error connecting to the database: %s", err)
-		return
-	}
-	defer db.Close()
 
 	rows, err := db.Query(`
     SELECT 
@@ -356,11 +310,7 @@ func UpdatePlaycount(user string) {
 }
 
 func IsAdmin(userid int32) bool {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT * FROM admins WHERE userid = ?", userid)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -383,11 +333,7 @@ func IsAdmin(userid int32) bool {
 we like only approved and ranked
 */
 func GetMapStatus(checksum string) string {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		return "-1"
-	}
-	defer db.Close()
+
 	rows, err := db.Query("SELECT status from beatmaps WHERE checksum = ?", checksum)
 	if err != nil {
 		return "-1"
@@ -403,12 +349,6 @@ func IsRanked(checksum string) bool {
 	return GetMapStatus(checksum) == "2" || GetMapStatus(checksum) == "3"
 }
 func GetTopUsers() ([]map[string]interface{}, error) {
-	db, err := sql.Open("mysql", connectionstring)
-	if err != nil {
-		Utils.LogErr(err.Error())
-		return nil, err
-	}
-	defer db.Close()
 
 	rows, err := db.Query(`
         SELECT username, ranked_score, total_score, accuracy 

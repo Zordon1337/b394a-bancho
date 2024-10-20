@@ -6,12 +6,14 @@ import (
 	"score-server/src/Handlers/api"
 	"score-server/src/Handlers/web"
 	"score-server/src/Utils"
+	"score-server/src/db"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	Utils.LogInfo("Starting score server on port 80")
+	db.InitDatabase()
 	r := mux.NewRouter()
 	r.HandleFunc("/web/osu-submit.php", web.HandleScore).Methods("GET", "POST")
 	r.HandleFunc("/web/osu-getreplay.php", web.HandleReplay).Methods("GET", "POST")
