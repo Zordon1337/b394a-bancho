@@ -20,6 +20,7 @@ func main() {
 	r.HandleFunc("/web/osu-getscores3.php", web.HandleScores).Methods("GET", "POST")
 	r.HandleFunc("/forum/download.php", web.HandleAvatar).Methods("GET", "POST")
 	r.HandleFunc("/api/v1/gettop", api.HandleLbs).Methods("GET", "POST")
+	r.HandleFunc("/api/v1/GetUser", api.HandleGetUser).Methods("GET", "POST")
 	r.HandleFunc("/api/v1/isloggedin", api.HandleIsLogged).Methods("GET", "POST")
 	r.HandleFunc("/api/v1/register", api.HandleRegister).Methods("GET", "POST")
 	r.HandleFunc("/api/v1/login", api.HandleLogin).Methods("GET", "POST")
