@@ -29,6 +29,7 @@ func main() {
 	r.HandleFunc("/", Handlers.HandleIndex).Methods("GET", "POST")
 	r.HandleFunc("/register", Handlers.HandleSignup).Methods("GET", "POST")
 	r.HandleFunc("/login", Handlers.HandleLogin).Methods("GET", "POST")
+	r.HandleFunc("/profile/{user}", Handlers.HandleProfile).Methods("GET", "POST")
 	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("./src/web/css/"))))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("./src/web/js/"))))
 	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("./src/web/img/"))))
