@@ -6,7 +6,7 @@ function Register(username, password) {
             var dat = data.split('\n')
             alert(dat[1])
        } else {
-        alert("Successfully registered!")
+        document.location.href = `/profile/${username}`
        }
     })
     .catch(error => console.error('Error registering', error));
