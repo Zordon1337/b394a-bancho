@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
             rankCell.textContent = entry.rank;
 
             const usernameCell = document.createElement('td');
-            usernameCell.textContent = entry.Username;
+            usernameCell.innerHTML = `<a href='/profile/${entry.Username}'>${ entry.Username}</a>`;
 
             const rankedScoreCell = document.createElement('td');
             rankedScoreCell.textContent = entry.RankedScore;

@@ -51,13 +51,25 @@ body {
     text-align: center;
 }
 .content table {
-    height: 50px;
+    max-height: 80%;
     justify-content: center;
     align-self: center;
-    margin:auto;
-    width: 75%;
+    margin:auto;    
     background-color: #47b9b4;
     border-radius: 5px;
+    border-collapse: collapse;
+    
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: block;
+    
+} 
+.content td, .content tr {
+    width: 15vh;
+}
+.content table a {
+    
+    text-decoration:none;
 }
 .content-img {
     background-image: url(/img/background.png);
