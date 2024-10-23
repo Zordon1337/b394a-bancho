@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>retsu - Home Page</title>
-    <link rel="stylesheet" href="css/main.css"> 
-    <script src="js/index.js"></script>
+    <link rel="stylesheet" href="/css/editprofile.css"> 
+    <script src="/js/index.js"></script>
 </head>
 <body>
     <div class="navbar">
@@ -20,7 +20,28 @@
             <a href="/login"><button>Login</button></a>
         </div>
     </div>
-    <div class="content-img">
+    <div class="content">
+        
+        <form onsubmit="">
+            <p>Set avatar</p>
+            <input type="file" accept="image/png" placeholder="New avatar"/>
+            <br>
+            <input type="submit" value="Change avatar">
+        </form>
+        <form onsubmit="">
+            <p>Username</p>
+            <input type="text" id="newusername" placeholder="New username"/>
+            <br>
+            <input type="submit" value="Change Username">
+        </form>
+        <form onsubmit="">
+            <p>Password</p>
+            <input type="password" id="oldpass" placeholder="Old password" required/>
+            <br>
+            <input type="password" id="newpass" placeholder="New password" required minlength="8"/>
+            <br>
+            <input type="submit" value="Update Password">
+        </form>
         <div class="content-left">
         </div>
         <div class="content-right">
