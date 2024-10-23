@@ -14,12 +14,54 @@ import (
 var connectionstring string = "test:test@tcp(127.0.0.1:3306)/osu!"
 var db *sql.DB
 
+type User struct {
+	Username    string  `json:"Username"`
+	UserId      int     `json:"UserId"`
+	RankedScore int64   `json:"RankedScore"`
+	Accuracy    float32 `json:"Accuracy"`
+	PlayCount   int32   `json:"PlayCount"`
+	TotalScore  int64   `json:"TotalScore"`
+	Rank        int32   `json:"Rank"`
+	JoinDate    string  `json:"JoinDate"`
+	LastOnline  string  `json:"LastOnline"`
+}
+
 func InitDatabase() {
 	var err error
 	db, err = sql.Open("mysql", connectionstring)
 	if err != nil {
 		Utils.LogErr("Failed to create database connection!")
 	}
+}
+func GetJoinDate(username string) string {
+
+	rows, err := db.Query("SELECT joindate FROM users WHERE username = ?", username)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var joindate string
+		rows.Scan(&joindate)
+		return joindate
+	}
+	return "unknown"
+}
+func GetUserFromDatabase(username string) User {
+	user := new(User)
+
+	rows, err := db.Query("SELECT userid, username, ranked_score, accuracy, playcount, total_score, rank, lastonline, joindate FROM users WHERE username = ?", username)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(&user.UserId, &user.Username, &user.RankedScore, &user.Accuracy, &user.PlayCount, &user.TotalScore, &user.Rank, &user.LastOnline, &user.JoinDate)
+		return *user
+	}
+	user.UserId = -1
+	return *user
 }
 func RegisterUser(username string, password string) error {
 

@@ -24,6 +24,7 @@ func main() {
 	r.HandleFunc("/api/v1/isloggedin", api.HandleIsLogged).Methods("GET", "POST")
 	r.HandleFunc("/api/v1/register", api.HandleRegister).Methods("GET", "POST")
 	r.HandleFunc("/api/v1/login", api.HandleLogin).Methods("GET", "POST")
+	r.HandleFunc("/api/v1/findplayer/{user}", api.HandleFindUser).Methods("GET", "POST")
 	r.HandleFunc("/leaderboard", Handlers.HandleLbFrontend).Methods("GET", "POST")
 	r.HandleFunc("/", Handlers.HandleIndex).Methods("GET", "POST")
 	r.HandleFunc("/register", Handlers.HandleSignup).Methods("GET", "POST")
