@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data.loggedIn) {
             const navbarRight = document.getElementById('navbar-right');
             navbarRight.innerHTML = `
-                <p>Logged in as<a href='/profile/${data.username}'>${data.username}</a> <a href='/logout'>(logout)</a></p>
+                <p>Logged in as<a href='/profile/${data.username}'>${data.username}</a> <a href='/logout'>(logout)</a> <a href='/userpanel/edit'>(Edit profile)</a></p>
             `;
         }
     })

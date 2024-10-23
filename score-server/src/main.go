@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"score-server/src/Handlers"
 	"score-server/src/Handlers/api"
+	"score-server/src/Handlers/userpanel"
 	"score-server/src/Handlers/web"
 	"score-server/src/Utils"
 	"score-server/src/db"
@@ -30,6 +31,7 @@ func main() {
 	r.HandleFunc("/register", Handlers.HandleSignup).Methods("GET", "POST")
 	r.HandleFunc("/login", Handlers.HandleLogin).Methods("GET", "POST")
 	r.HandleFunc("/profile/{user}", Handlers.HandleProfile).Methods("GET", "POST")
+	r.HandleFunc("/userpanel/edit", userpanel.HandleEdit).Methods("GET", "POST")
 	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("./src/web/css/"))))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("./src/web/js/"))))
 	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("./src/web/img/"))))
