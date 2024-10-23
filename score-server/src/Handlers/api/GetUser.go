@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"score-server/src/Utils"
+	"score-server/src/db"
 )
 
 type ResponseJSON struct {
@@ -30,6 +31,9 @@ func HandleGetUser(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				fmt.Println("Error marshaling to JSON:", err)
 				return
+			}
+			if !db.IsCorrectCred(username, password) {
+				user.LoggedIn = false
 			}
 			fmt.Fprint(w, string(jsonData))
 			return

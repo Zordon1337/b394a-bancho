@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"score-server/src/Utils"
+	"score-server/src/db"
 )
 
 func HandleIsLogged(w http.ResponseWriter, r *http.Request) {
@@ -14,7 +15,11 @@ func HandleIsLogged(w http.ResponseWriter, r *http.Request) {
 	}
 	if username, ok := ses.Values["username"].(string); ok && username != "" {
 		if password, ok := ses.Values["password"].(string); ok && password != "" {
-			fmt.Fprintf(w, "Yes")
+			if db.IsCorrectCred(username, password) {
+				fmt.Fprintf(w, "Yes")
+			} else {
+				fmt.Fprintf(w, "No")
+			}
 			return
 		} else {
 			fmt.Fprintf(w, "No")
