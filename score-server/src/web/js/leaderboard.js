@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
             totalScoreCell.textContent = entry.TotalScore;
 
             const accuracyCell = document.createElement('td');
-            accuracyCell.textContent = entry.Accuracy*100;
+            accuracyCell.textContent = `${entry.Accuracy*100}%`;
 
             row.appendChild(rankCell);
             row.appendChild(usernameCell);
