@@ -6,6 +6,7 @@
     <title>retsu - Home Page</title>
     <link rel="stylesheet" href="/css/editprofile.css"> 
     <script src="/js/index.js"></script>
+    <script src="/js/UpdatePassword.js"></script>
 </head>
 <body>
     <div class="navbar">
@@ -34,14 +35,14 @@
             <br>
             <input type="submit" value="Change Username">
         </form>
-        <form onsubmit="">
+        <div>
             <p>Password</p>
             <input type="password" id="oldpass" placeholder="Old password" required/>
             <br>
             <input type="password" id="newpass" placeholder="New password" required minlength="8"/>
             <br>
-            <input type="submit" value="Update Password">
-        </form>
+            <button onclick="UpdatePassword();" value="Update Password">Change Password</button>
+        </div>
         <div class="content-left">
         </div>
         <div class="content-right">

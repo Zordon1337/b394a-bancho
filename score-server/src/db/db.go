@@ -109,6 +109,14 @@ func IsCorrectCred(username string, password string) bool {
 	}
 	return rowsreturned > 0
 }
+func SetPassword(username string, currentpass string, newpass string) bool {
+	if IsCorrectCred(username, currentpass) {
+		db.Query("UPDATE `users` SET `password`= ? WHERE username = ?", newpass, username)
+		return true
+	} else {
+		return false
+	}
+}
 func GetUserIdByUsername(username string) int32 {
 
 	rows, err := db.Query("SELECT userid FROM users WHERE username = ?", username)
