@@ -35,6 +35,7 @@ func main() {
 	r.HandleFunc("/api/v1/userpanel/UpdatePassword", api.ChangePassword).Methods("GET", "POST")
 	r.HandleFunc("/api/v1/userpanel/UpdateUsername", api.ChangeUsername).Methods("GET", "POST")
 	r.HandleFunc("/api/v1/userpanel/SetAvatar", api.PfpUpload).Methods("GET", "POST")
+	r.HandleFunc("/logout", api.HandleLogout).Methods("GET", "POST")
 	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("./src/web/css/"))))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("./src/web/js/"))))
 	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("./src/web/img/"))))
