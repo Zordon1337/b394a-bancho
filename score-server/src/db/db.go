@@ -307,6 +307,35 @@ func UpdateRankedScore(user string) {
 	}
 	db.Query("UPDATE `users` SET `ranked_score`= ? WHERE username = ?", rankedscore, user)
 }
+func UpdateAccuracy(user string) {
+
+	rows, err := db.Query(`
+SELECT 
+    SUM(Accuracy * (Count300 + Count100 + Count50 + CountMiss)) / 
+    SUM(Count300 + Count100 + Count50 + CountMiss) AS total_accuracy
+FROM scores
+WHERE username = ?;
+	`, user)
+
+	if err != nil {
+		log.Printf("Error executing query: %s", err)
+		return
+	}
+	defer rows.Close()
+	rowam := 1
+	var accuracy float32
+	for rows.Next() {
+		err := rows.Scan(
+			&accuracy,
+		)
+		if err != nil {
+			Utils.LogErr("Error scanning row: %s", err)
+			continue
+		}
+		rowam++
+	}
+	db.Query("UPDATE `users` SET `accuracy`= ? WHERE username = ?", accuracy, user)
+}
 func UpdateTotalScore(user string) {
 
 	rows, err := db.Query(`
