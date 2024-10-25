@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         const playerId = hash.split("/profile/")[1];
         var fet = await fetch(`/api/v1/findplayer/${playerId}`)
         var response = await fet.json()
+        document.getElementById("avatar").src = `/forum/download.php?avatar=${response.UserId}`
+        document.getElementById("avatar").width = 128
+        document.getElementById("avatar").height = 128
         document.getElementById("Username").textContent = `${response.Username} (#${response.Rank})`
         document.getElementById("RankedScore").textContent = `Ranked Score: ${response.RankedScore}`
         document.getElementById("TotalScore").textContent = `Total Score: ${response.TotalScore}`
