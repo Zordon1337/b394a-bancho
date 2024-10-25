@@ -412,7 +412,7 @@ func GetTopUsers() ([]map[string]interface{}, error) {
 	rows, err := db.Query(`
         SELECT username, ranked_score, total_score, accuracy 
         FROM users 
-        ORDER BY ranked_score DESC LIMIT 25`)
+        ORDER BY ranked_score DESC LIMIT 100`)
 	if err != nil {
 		Utils.LogErr(err.Error())
 		return nil, err
