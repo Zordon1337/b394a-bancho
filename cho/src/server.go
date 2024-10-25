@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	addr        string = ":13381"
+	addr        string = "0.0.0.0:13381"
 	players            = make(map[string]*Structs.Player)
 	playersMu   sync.Mutex
 	MpMatches   = make(map[byte]*Structs.Match)
