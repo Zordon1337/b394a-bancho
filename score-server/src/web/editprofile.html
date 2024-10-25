@@ -8,6 +8,37 @@
     <script src="/js/index.js"></script>
     <script src="/js/UpdatePassword.js"></script>
     <script src="/js/UpdateUsername.js"></script>
+    <script>
+        function UploadAvatar(event) {
+            event.preventDefault();
+
+            const fileInput = document.getElementById("newavatar");
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a file.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("avatar", file);
+
+            fetch("/api/v1/userpanel/SetAvatar", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Failed to upload avatar.");
+                }
+                alert("Avatar updated successfully!");
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("There was an error uploading your avatar.");
+            });
+        }
+    </script>
 </head>
 <body>
     <div class="navbar">
@@ -24,12 +55,12 @@
     </div>
     <div class="content">
         
-        <form onsubmit="">
+        <div>
             <p>Set avatar</p>
-            <input type="file" accept="image/png" placeholder="New avatar"/>
+            <input type="file" accept="image/png" id="newavatar" placeholder="New avatar"/>
             <br>
-            <input type="submit" value="Change avatar">
-        </form>
+            <button onclick="UploadAvatar(event);" value="Update Username">Change Username</button>
+        </div>
         <div>
             <p>Username</p>
             <input type="text" id="newusername" placeholder="New username"/>
