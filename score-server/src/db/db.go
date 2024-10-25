@@ -336,6 +336,25 @@ WHERE username = ?;
 	}
 	db.Query("UPDATE `users` SET `accuracy`= ? WHERE username = ?", accuracy, user)
 }
+func UpdateRank(username string) {
+
+	user := new(User)
+
+	rows, err := db.Query("SELECT userid, username, ranked_score, accuracy, playcount, total_score, rank, lastonline, joindate FROM users ORDER BY ranked_score DESC")
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+	rownum := 1
+	defer rows.Close()
+	for rows.Next() {
+		rows.Scan(&user.UserId, &user.Username, &user.RankedScore, &user.Accuracy, &user.PlayCount, &user.TotalScore, &user.Rank, &user.LastOnline, &user.JoinDate)
+		if user.Username == username {
+			db.Query("UPDATE `users` SET `rank`= ? WHERE username = ?", rownum, username)
+			return
+		}
+		rownum++
+	}
+}
 func UpdateTotalScore(user string) {
 
 	rows, err := db.Query(`

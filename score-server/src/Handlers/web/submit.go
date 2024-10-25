@@ -46,5 +46,6 @@ func HandleScore(w http.ResponseWriter, r *http.Request) {
 		db.UpdatePlaycount(score2.Username)
 		db.UpdateTotalScore(score2.Username)
 		db.UpdateAccuracy(score2.Username)
+		db.UpdateRank(score2.Username)
 	}
 }
