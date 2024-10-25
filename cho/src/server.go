@@ -288,6 +288,7 @@ func handleClient(client net.Conn) {
 				m := player.CurrentMatch
 				m.InProgress = true
 				m.LoadingPeople = int32(CalculatePlayerInLobby(m))
+				m.SkippingNeededToSkip = int32(CalculatePlayerInLobby(m))
 				for i := 0; i < 8; i++ {
 					if m.SlotId[i] != -1 {
 						m.SlotStatus[i] = 32 // playing
@@ -301,6 +302,20 @@ func handleClient(client net.Conn) {
 					}
 				}
 
+				break
+			}
+		case 61:
+			{
+				m := player.CurrentMatch
+				m.SkippingNeededToSkip--
+				if m.SkippingNeededToSkip < 1 { // everybody loaded and we are happy
+					for i := 0; i < 8; i++ {
+						if m.SlotId[i] != -1 && m.SlotStatus[i] == 32 { // is player and is playing
+							plr := GetPlayerById(m.SlotId[i])
+							Packets.WriteMatchSkip(plr.Conn)
+						}
+					}
+				}
 				break
 			}
 		case 48:

@@ -18,17 +18,18 @@ Complete - 64
 CompHasPlayer - 124
 */
 type Match struct {
-	MatchId         byte
-	InProgress      bool
-	MatchType       byte
-	ActiveMods      int16
-	GameName        string
-	BeatmapName     string
-	BeatmapId       int32
-	BeatmapChecksum string
-	SlotStatus      [8]byte
-	SlotId          [8]int32
-	LoadingPeople   int32
+	MatchId              byte
+	InProgress           bool
+	MatchType            byte
+	ActiveMods           int16
+	GameName             string
+	BeatmapName          string
+	BeatmapId            int32
+	BeatmapChecksum      string
+	SlotStatus           [8]byte
+	SlotId               [8]int32
+	LoadingPeople        int32
+	SkippingNeededToSkip int32
 }
 
 func GetBytesFromMatch(match *Match) []byte {
