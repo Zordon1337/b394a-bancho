@@ -109,6 +109,14 @@ func IsCorrectCred(username string, password string) bool {
 	}
 	return rowsreturned > 0
 }
+func SetUsername(username string, newusername string) bool {
+	if IsNameTaken(newusername) {
+		return false
+	} else {
+		db.Query("UPDATE `users` SET `username`= ? WHERE username = ?", newusername, username)
+		return true
+	}
+}
 func SetPassword(username string, currentpass string, newpass string) bool {
 	if IsCorrectCred(username, currentpass) {
 		db.Query("UPDATE `users` SET `password`= ? WHERE username = ?", newpass, username)

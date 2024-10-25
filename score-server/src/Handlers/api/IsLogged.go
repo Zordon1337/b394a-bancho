@@ -19,6 +19,12 @@ func HandleIsLogged(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(w, "Yes")
 			} else {
 				fmt.Fprintf(w, "No")
+				ses.Options.MaxAge = -1
+				err := ses.Save(r, w)
+				if err != nil {
+					http.Error(w, "Failed to destroy session", http.StatusInternalServerError)
+					return
+				}
 			}
 			return
 		} else {

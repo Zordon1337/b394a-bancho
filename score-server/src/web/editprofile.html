@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/editprofile.css"> 
     <script src="/js/index.js"></script>
     <script src="/js/UpdatePassword.js"></script>
+    <script src="/js/UpdateUsername.js"></script>
 </head>
 <body>
     <div class="navbar">
@@ -29,12 +30,12 @@
             <br>
             <input type="submit" value="Change avatar">
         </form>
-        <form onsubmit="">
+        <div>
             <p>Username</p>
             <input type="text" id="newusername" placeholder="New username"/>
             <br>
-            <input type="submit" value="Change Username">
-        </form>
+            <button onclick="UpdateUsername();" value="Update Username">Change Username</button>
+        </div>
         <div>
             <p>Password</p>
             <input type="password" id="oldpass" placeholder="Old password" required/>

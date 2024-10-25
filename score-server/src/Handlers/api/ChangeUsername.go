@@ -7,7 +7,7 @@ import (
 	"score-server/src/db"
 )
 
-func ChangePassword(w http.ResponseWriter, r *http.Request) {
+func ChangeUsername(w http.ResponseWriter, r *http.Request) {
 	ses, err := Utils.Sessions.Get(r, "usersession")
 	if err != nil {
 		return
@@ -17,27 +17,27 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
-	oldpass := r.FormValue("oldpass")
-	newpass := Utils.HashMD5(r.FormValue("newpass"))
-	if newpass == "" || oldpass == "" {
-		http.Error(w, "No password provided", http.StatusBadRequest)
+	newusername := r.FormValue("newusername")
+	if newusername == "" {
+		http.Error(w, "No username provided", http.StatusBadRequest)
 	}
 	if username, ok := ses.Values["username"].(string); ok && username != "" {
 		if password, ok := ses.Values["password"].(string); ok && password != "" {
 			if db.IsCorrectCred(username, password) {
-				result := db.SetPassword(username, password, newpass)
-				if result && oldpass == password {
+				result := db.SetUsername(username, newusername)
+				if result {
+					ses.Values["username"] = newusername
 					ses.Options.MaxAge = -1
 					err := ses.Save(r, w)
 					if err != nil {
 						http.Error(w, "Failed to destroy session", http.StatusInternalServerError)
 						return
 					}
-					fmt.Fprintf(w, "Succesfully changed password")
+					fmt.Fprintf(w, "Changed username!")
 					return
 				} else {
 
-					http.Error(w, "Failed to change password", http.StatusBadRequest)
+					http.Error(w, "Failed to change username, already taken?", http.StatusBadRequest)
 					return
 				}
 			} else {
