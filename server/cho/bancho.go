@@ -233,6 +233,13 @@ func handleClient(client net.Conn) {
 					Utils.LogErr("Error occurred on GameName creation: ", err.Error())
 					return
 				}
+				if player.Build > 590 {
+					match.Password, err = Utils.ReadOsuString(buf)
+					if err != nil {
+						Utils.LogErr("Error occurred on Password creation: ", err.Error())
+						return
+					}
+				}
 				match.BeatmapName, err = Utils.ReadOsuString(buf)
 				if err != nil {
 					Utils.LogErr("Error occurred on BeatmapName creation: ", err.Error())
@@ -248,10 +255,32 @@ func handleClient(client net.Conn) {
 					Utils.LogErr("Error occurred on BeatmapChecksum creation: ", err.Error())
 					return
 				}
+				err = binary.Read(buf, binary.LittleEndian, &match.HostId)
+				if err != nil {
+					Utils.LogErr("Error occurred on HostId creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.Mode)
+				if err != nil {
+					Utils.LogErr("Error occurred on BeatmapId creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.ScoringType)
+				if err != nil {
+					Utils.LogErr("Error occurred on BeatmapId creation: ", err.Error())
+					return
+				}
+				err = binary.Read(buf, binary.LittleEndian, &match.TeamType)
+				if err != nil {
+					Utils.LogErr("Error occurred on BeatmapId creation: ", err.Error())
+					return
+				}
 				match.SlotStatus = [8]byte{4, 1, 1, 1, 1, 1, 1, 1}
 				match.SlotId = [8]int32{player.Stats.UserID, -1, -1, -1, -1, -1, -1, -1}
+				match.SlotTeam = [8]byte{0, 0, 0, 0, 0, 0, 0, 0}
+
 				Utils.LogInfo("%s created an match with id %s", player.Username, match.MatchId)
-				Packets.WriteMatchJoinSuccess(player.Conn, *match)
+				Packets.WriteMatchJoinSuccess(player.Conn, *match, int32(player.Build))
 				player.CurrentMatch = match
 				AddMatch(match)
 				break
@@ -277,7 +306,7 @@ func handleClient(client net.Conn) {
 			{ // Join Lobby
 				player.IsInLobby = true
 				for _, match := range MpMatches {
-					Packets.WriteMatchUpdate(player.Conn, *match)
+					Packets.WriteMatchUpdate(player, *match)
 				}
 				break
 			}
@@ -310,8 +339,8 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if m.SlotId[i] != -1 {
 						plr := GetPlayerById(m.SlotId[i])
-						Packets.WriteMatchUpdate(plr.Conn, *m)
-						Packets.WriteMatchStart(plr.Conn, *m)
+						Packets.WriteMatchUpdate(*plr, *m)
+						Packets.WriteMatchStart(*plr, *m)
 					}
 				}
 
@@ -354,7 +383,7 @@ func handleClient(client net.Conn) {
 						plr := GetPlayerById(m.SlotId[i])
 						m.SlotStatus[i] = 4
 						m.InProgress = false
-						Packets.WriteMatchUpdate(plr.Conn, *m)
+						Packets.WriteMatchUpdate(*plr, *m)
 						Packets.WriteMatchComplete(plr.Conn)
 					}
 				}
@@ -422,7 +451,7 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if match.SlotId[i] != -1 {
 						plr := GetPlayerById(match.SlotId[i])
-						Packets.WriteMatchUpdate(plr.Conn, *match)
+						Packets.WriteMatchUpdate(*plr, *match)
 					}
 				}
 				break
@@ -440,7 +469,7 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if m.SlotId[i] != -1 {
 						plr := GetPlayerById(m.SlotId[i])
-						Packets.WriteMatchUpdate(plr.Conn, *m)
+						Packets.WriteMatchUpdate(*plr, *m)
 					}
 				}
 				break
@@ -468,7 +497,7 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if match.SlotId[i] != -1 {
 						plr := GetPlayerById(match.SlotId[i])
-						Packets.WriteMatchUpdate(plr.Conn, *match)
+						Packets.WriteMatchUpdate(*plr, *match)
 					}
 				}
 				break
@@ -587,7 +616,7 @@ func AddMatch(match *Structs.Match) {
 	playersMu.Lock()
 	for _, player1 := range players {
 		if player1.IsInLobby {
-			Packets.WriteMatchUpdate(player1.Conn, *match)
+			Packets.WriteMatchUpdate(*player1, *match)
 		}
 	}
 	playersMu.Unlock()
@@ -646,7 +675,7 @@ func SetSlotStatusById(userid int32, match *Structs.Match, newstatus byte) {
 	for i := 0; i < 8; i++ {
 		if match.SlotId[i] != -1 {
 			plr := GetPlayerById(match.SlotId[i])
-			Packets.WriteMatchUpdate(plr.Conn, *match)
+			Packets.WriteMatchUpdate(*plr, *match)
 		}
 	}
 }
@@ -665,10 +694,10 @@ func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
 		for i := 0; i < 8; i++ {
 			if match.SlotId[i] != -1 && match.SlotId[i] != player.Stats.UserID {
 				plr := GetPlayerById(match.SlotId[i])
-				Packets.WriteMatchUpdate(plr.Conn, *match)
+				Packets.WriteMatchUpdate(*plr, *match)
 			}
 		}
-		Packets.WriteMatchJoinSuccess(player.Conn, *match)
+		Packets.WriteMatchJoinSuccess(player.Conn, *match, int32(player.Build))
 		return true
 	}
 }
@@ -691,7 +720,7 @@ func PartMatch(player *Structs.Player, match *Structs.Match) {
 	for i := 0; i < 8; i++ {
 		if match.SlotId[i] != -1 && match.SlotId[i] != player.Stats.UserID {
 			plr := GetPlayerById(match.SlotId[i])
-			Packets.WriteMatchUpdate(plr.Conn, *match)
+			Packets.WriteMatchUpdate(*plr, *match)
 		}
 	}
 	peopleinlobby := 0
