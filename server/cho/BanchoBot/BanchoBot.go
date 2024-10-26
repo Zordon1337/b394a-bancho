@@ -22,6 +22,8 @@ func GenerateProfile() *Structs.Player {
 		StatusText:      "",
 		BeatmapChecksum: "",
 		CurrentMods:     0,
+		BeatmapId:       0,
+		PlayMode:        0,
 	}
 	player := Structs.Player{
 		Username:  "BanchoBot",

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"regexp"
 	"retsu/Utils"
 	"retsu/cho/BanchoBot"
 	"retsu/cho/Packets"
@@ -75,7 +76,10 @@ func handleClient(client net.Conn) {
 		BeatmapChecksum: "",
 		CurrentMods:     0,
 	}
-	build2, err := strconv.ParseInt(strings.Replace(build, "b", "", 1), 0, 64)
+	re := regexp.MustCompile(`\D`)
+	cleaned := re.ReplaceAllString(build, "")
+	build2, err := strconv.ParseInt(cleaned, 0, 64)
+	fmt.Println(cleaned)
 	player := Structs.Player{
 		Username:  (username),
 		Conn:      client,
@@ -93,6 +97,10 @@ func handleClient(client net.Conn) {
 	}
 	Utils.LogInfo(username + " logged in on build " + build)
 	Packets.WriteLoginReply(client, player.Stats.UserID)
+
+	if build2 > 394 {
+		Packets.WriteProtcolNegotiation(client, 5)
+	}
 	Packets.WriteChannelJoinSuccess(client, "#osu")
 	if db.IsRestricted(stats.UserID) {
 		Packets.WriteMessage(client, "BanchoBot", "You are restricted, because of that you can't submit any new scores", player.Username)
@@ -104,11 +112,11 @@ func handleClient(client net.Conn) {
 	Packets.WriteAnnounce(player.Conn, "Welcome to bancho, Mr. "+player.Username)
 	playersMu.Lock()
 	for _, player1 := range players {
-		Packets.WriteUserStats(player1.Conn, player, 2)
+		Packets.WriteUserStats(*player1, player, 2)
 	}
 	for _, player1 := range players {
 
-		Packets.WriteUserStats(player.Conn, *player1, 2)
+		Packets.WriteUserStats(player, *player1, 2)
 	}
 	playersMu.Unlock()
 	go func() {
@@ -119,9 +127,9 @@ func handleClient(client net.Conn) {
 				if stats2.Accuracy != player.Stats.Accuracy || stats2.PlayCount != player.Stats.PlayCount || stats2.RankedScore != player.Stats.RankedScore || stats2.Rank != player.Stats.Rank || stats2.TotalScore != player.Stats.TotalScore {
 					player.Stats = stats2
 					playersMu.Lock()
-					for _, player1 := range players {
+					/*for _, player1 := range players {
 						Packets.WriteUserStats(player1.Conn, player, 2)
-					}
+					}*/
 					playersMu.Unlock()
 				}
 				Packets.WritePing(client)
@@ -192,7 +200,7 @@ func handleClient(client net.Conn) {
 			}
 		case 3: // user stats request
 			{
-				Packets.WriteUserStats(player.Conn, player, 2)
+				Packets.WriteUserStats(player, player, 2)
 				break
 			}
 
@@ -538,13 +546,22 @@ func handleStatus(player Structs.Player, data []byte) {
 		if err != nil {
 			Utils.LogErr("Error occurred while reading mods from " + player.Username)
 		}
+		err = binary.Read(buf, binary.LittleEndian, &player.Status.PlayMode)
+		if err != nil {
+			Utils.LogErr("Error occurred while reading PlayMode from " + player.Username)
+		}
+		err = binary.Read(buf, binary.LittleEndian, &player.Status.BeatmapId)
+		if err != nil {
+			Utils.LogErr("Error occurred while reading beatmapid from " + player.Username)
+		}
+
 		player.Status.StatusText = statusText
 		player.Status.BeatmapChecksum = beatmapMd5
 		player.Status.CurrentMods = mods
 	}
 	playersMu.Lock()
 	for _, player1 := range players {
-		Packets.WriteUserStats(player1.Conn, player, 0)
+		Packets.WriteUserStats(*player1, player, 0)
 	}
 	playersMu.Unlock()
 }

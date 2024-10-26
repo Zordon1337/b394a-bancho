@@ -3,13 +3,12 @@ package Packets
 import (
 	"bytes"
 	"encoding/binary"
-	"net"
 	"retsu/Utils"
 	"retsu/cho/Structs"
 	"strconv"
 )
 
-func GetStatusUpdate(user Structs.Player) ([]byte, error) {
+func GetStatusUpdate(receiver Structs.Player, user Structs.Player) ([]byte, error) {
 	buffer := new(bytes.Buffer)
 	err := binary.Write(buffer, binary.LittleEndian, byte(user.Status.Status)) // status, Idle for testing
 	if err != nil {
@@ -32,11 +31,21 @@ func GetStatusUpdate(user Structs.Player) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+		if receiver.Build > 483 {
+			err = binary.Write(buffer, binary.LittleEndian, user.Status.PlayMode)
+			if err != nil {
+				return nil, err
+			}
+			err = binary.Write(buffer, binary.LittleEndian, int32(user.Status.BeatmapId))
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 	return buffer.Bytes(), nil
 }
-func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
-	if network == nil {
+func WriteUserStats(receiver Structs.Player, user Structs.Player, completeness byte) {
+	if receiver.Conn == nil {
 		return
 	}
 	buffer := new(bytes.Buffer)
@@ -49,7 +58,7 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 	if err != nil {
 		return
 	}
-	statusupdate, err := GetStatusUpdate(user)
+	statusupdate, err := GetStatusUpdate(receiver, user)
 	if err != nil {
 		return
 	}
@@ -74,9 +83,16 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, uint16(user.Stats.Rank)) // Rank
-		if err != nil {
-			return
+		if receiver.Build > 394 {
+			err = binary.Write(buffer, binary.LittleEndian, int32(user.Stats.Rank)) // Rank
+			if err != nil {
+				return
+			}
+		} else {
+			err = binary.Write(buffer, binary.LittleEndian, uint16(user.Stats.Rank)) // Rank
+			if err != nil {
+				return
+			}
 		}
 	}
 	// full
@@ -97,10 +113,25 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
+		if receiver.Build > 394 {
+
+			err = binary.Write(buffer, binary.LittleEndian, byte(0)) // Perms
+			if err != nil {
+				return
+			}
+			err = binary.Write(buffer, binary.LittleEndian, float32(0)) // Longitude
+			if err != nil {
+				return
+			}
+			err = binary.Write(buffer, binary.LittleEndian, float32(0)) // Latitude
+			if err != nil {
+				return
+			}
+		}
 	}
 	resp, err := Utils.SerializePacket(12, buffer.Bytes())
 	if err != nil {
 		return
 	}
-	network.Write(resp)
+	receiver.Conn.Write(resp)
 }
