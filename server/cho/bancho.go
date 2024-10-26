@@ -61,7 +61,12 @@ func handleClient(client net.Conn) {
 	//md5Hash := lines[1]
 	build := strings.Split(lines[2], "|")[0]
 	timezone, err := strconv.Atoi(strings.Split(lines[2], "|")[1])
-
+	ip := client.RemoteAddr().(*net.TCPAddr).IP.String()
+	country, err := Utils.GetCountryFromIP(ip)
+	if err != nil {
+		Utils.LogErr("Error getting country for %s: %s", username, err.Error())
+		return
+	}
 	stats := db.GetUserFromDatabasePassword(username, password)
 	status := Structs.Status{
 		Status:          0,
@@ -77,6 +82,7 @@ func handleClient(client net.Conn) {
 		Status:    status,
 		IsInLobby: false,
 		Timezone:  byte(24 + timezone),
+		Country:   country,
 	}
 	if stats.UserID < 1 {
 		Utils.LogInfo(username + " attempted to login with invalid password")

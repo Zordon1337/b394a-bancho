@@ -12,4 +12,5 @@ type Player struct {
 	CurrentMatch *Match
 	IsInLobby    bool
 	Timezone     byte
+	Country      string
 }

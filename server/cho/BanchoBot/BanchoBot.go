@@ -30,6 +30,7 @@ func GenerateProfile() *Structs.Player {
 		Status:    status,
 		IsInLobby: false,
 		Timezone:  byte(24),
+		Country:   "Satelite",
 	}
 	return &player
 }

@@ -93,7 +93,7 @@ func WriteUserStats(network net.Conn, user Structs.Player, completeness byte) {
 		if err != nil {
 			return
 		}
-		err = binary.Write(buffer, binary.LittleEndian, Utils.WriteOsuString("China")) // Country
+		err = binary.Write(buffer, binary.LittleEndian, Utils.WriteOsuString(user.Country)) // Country
 		if err != nil {
 			return
 		}
