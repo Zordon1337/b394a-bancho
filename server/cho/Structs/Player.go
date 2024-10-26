@@ -13,4 +13,5 @@ type Player struct {
 	IsInLobby    bool
 	Timezone     byte
 	Country      string
+	Build        int64
 }

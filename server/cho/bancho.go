@@ -75,6 +75,7 @@ func handleClient(client net.Conn) {
 		BeatmapChecksum: "",
 		CurrentMods:     0,
 	}
+	build2, err := strconv.ParseInt(strings.Replace(build, "b", "", 1), 0, 64)
 	player := Structs.Player{
 		Username:  (username),
 		Conn:      client,
@@ -83,6 +84,7 @@ func handleClient(client net.Conn) {
 		IsInLobby: false,
 		Timezone:  byte(24 + timezone),
 		Country:   country,
+		Build:     build2,
 	}
 	if stats.UserID < 1 {
 		Utils.LogInfo(username + " attempted to login with invalid password")
