@@ -679,13 +679,15 @@ func handleStatus(player Structs.Player, data []byte) {
 		if err != nil {
 			Utils.LogErr("Error occurred while reading mods from " + player.Username)
 		}
-		err = binary.Read(buf, binary.LittleEndian, &player.Status.PlayMode)
-		if err != nil {
-			Utils.LogErr("Error occurred while reading PlayMode from " + player.Username)
-		}
-		err = binary.Read(buf, binary.LittleEndian, &player.Status.BeatmapId)
-		if err != nil {
-			Utils.LogErr("Error occurred while reading beatmapid from " + player.Username)
+		if player.Build > 483 {
+			err = binary.Read(buf, binary.LittleEndian, &player.Status.PlayMode)
+			if err != nil {
+				Utils.LogErr("Error occurred while reading PlayMode from " + player.Username)
+			}
+			err = binary.Read(buf, binary.LittleEndian, &player.Status.BeatmapId)
+			if err != nil {
+				Utils.LogErr("Error occurred while reading beatmapid from " + player.Username)
+			}
 		}
 
 		player.Status.StatusText = statusText

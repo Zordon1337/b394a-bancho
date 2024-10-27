@@ -8,6 +8,7 @@
 <div align="center">
   <ul>
     <li>b394a</li>
+    <li>b504</li>
     <li>b1700</li>
   </ul>
 </div>

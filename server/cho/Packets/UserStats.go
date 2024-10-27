@@ -83,7 +83,7 @@ func WriteUserStats(receiver Structs.Player, user Structs.Player, completeness b
 		if err != nil {
 			return
 		}
-		if receiver.Build > 394 {
+		if receiver.Build > 504 {
 			err = binary.Write(buffer, binary.LittleEndian, int32(user.Stats.Rank)) // Rank
 			if err != nil {
 				return
@@ -114,11 +114,13 @@ func WriteUserStats(receiver Structs.Player, user Structs.Player, completeness b
 			return
 		}
 		if receiver.Build > 394 {
-
 			err = binary.Write(buffer, binary.LittleEndian, byte(0)) // Perms
 			if err != nil {
 				return
 			}
+		}
+		if receiver.Build > 504 {
+
 			err = binary.Write(buffer, binary.LittleEndian, float32(0)) // Longitude
 			if err != nil {
 				return
