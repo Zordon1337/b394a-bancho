@@ -36,8 +36,9 @@ func Frontend() {
 	r.HandleFunc("/api/v1/userpanel/UpdateUsername", api.ChangeUsername).Methods("GET", "POST")
 	r.HandleFunc("/api/v1/userpanel/SetAvatar", api.PfpUpload).Methods("GET", "POST")
 	r.HandleFunc("/logout", api.HandleLogout).Methods("GET", "POST")
+	r.HandleFunc("/a/{id}", web.HandleAvatarNew).Methods("GET")
 	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("./frontend/src/web/css/"))))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("./frontend/src/web/js/"))))
 	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("./frontend/src/web/img/"))))
-	http.ListenAndServe("0.0.0.0:80", r)
+	http.ListenAndServe("0.0.0.0:8080", r)
 }
