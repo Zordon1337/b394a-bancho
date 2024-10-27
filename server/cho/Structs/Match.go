@@ -40,11 +40,18 @@ type Match struct {
 
 func GetBytesFromMatch(match *Match, build int32) []byte {
 	buf := new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, match.MatchId)
-	if err != nil {
-		return nil
+	if build > 1717 {
+		err := binary.Write(buf, binary.LittleEndian, int16(match.MatchId))
+		if err != nil {
+			return nil
+		}
+	} else {
+		err := binary.Write(buf, binary.LittleEndian, (match.MatchId))
+		if err != nil {
+			return nil
+		}
 	}
-	err = binary.Write(buf, binary.LittleEndian, match.InProgress)
+	err := binary.Write(buf, binary.LittleEndian, match.InProgress)
 	if err != nil {
 		return nil
 	}

@@ -226,10 +226,20 @@ func handleClient(client net.Conn) {
 			{
 				buf := bytes.NewReader(data)
 				match := new(Structs.Match)
-				err := binary.Read(buf, binary.LittleEndian, &match.MatchId)
-				if err != nil {
-					Utils.LogErr("Error occurred on MatchId creation: ", err.Error())
-					return
+				var matchidtemp int16
+				if player.Build > 1717 {
+					err := binary.Read(buf, binary.LittleEndian, &matchidtemp)
+					if err != nil {
+						Utils.LogErr("Error occurred on MatchId creation: ", err.Error())
+						return
+					}
+					match.MatchId = byte(matchidtemp)
+				} else {
+					err := binary.Read(buf, binary.LittleEndian, &match.MatchId)
+					if err != nil {
+						Utils.LogErr("Error occurred on MatchId creation: ", err.Error())
+						return
+					}
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.InProgress)
 				if err != nil {
