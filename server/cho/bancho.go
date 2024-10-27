@@ -57,6 +57,9 @@ func handleClient(client net.Conn) {
 		return
 	}
 	lines := strings.Split(string(initialMessage[:n]), "\n")
+	if len(lines) < 3 {
+		return // make client reconnect
+	}
 	username := strings.TrimSpace(lines[0])
 	password := strings.TrimSpace(lines[1])
 	//md5Hash := lines[1]
@@ -97,7 +100,6 @@ func handleClient(client net.Conn) {
 	}
 	Utils.LogInfo(username + " logged in on build " + build)
 	Packets.WriteLoginReply(client, player.Stats.UserID)
-
 	if build2 > 394 {
 		Packets.WriteProtcolNegotiation(client, 5)
 	}
@@ -180,9 +182,11 @@ func handleClient(client net.Conn) {
 			return
 		}
 		switch packetType {
+
 		case 0: // status change
 			{
 				handleStatus(player, data)
+				break
 			}
 		case 1: // irc msg
 			{
@@ -569,6 +573,39 @@ func handleClient(client net.Conn) {
 				}
 				break
 			}
+		/*case 71: // TransferHost
+		{
+
+			match := player.CurrentMatch
+			buf := bytes.NewReader(data)
+			if match.HostId == player.Stats.UserID {
+				var newhost int32
+				var oldhostslot int
+				binary.Read(buf, binary.LittleEndian, &newhost)
+				for i := 0; i < 8; i++ {
+					if match.SlotId[i] == match.HostId {
+						oldhostslot = i
+					}
+				}
+				match.SlotId[newhost] = match.SlotId[oldhostslot]
+				match.SlotStatus[newhost] = match.SlotStatus[oldhostslot]
+				match.SlotId[oldhostslot] = match.SlotId[newhost]
+				match.SlotStatus[oldhostslot] = match.SlotStatus[newhost]
+				match.HostId = newhost
+				fmt.Println("newhostslot: ", newhost)
+				fmt.Println("oldhostslot: ", oldhostslot)
+				fmt.Println("newhost: ", newhost)
+
+			}
+
+			for i := 0; i < 8; i++ {
+				if match.SlotId[i] != -1 {
+					plr := GetPlayerById(match.SlotId[i])
+					Packets.WriteMatchUpdate(*plr, *match)
+				}
+			}
+			break
+		}*/
 		default:
 			{
 				Utils.LogWarning("Received unhandled packet %d", packetType)
@@ -784,15 +821,21 @@ func PartMatch(player *Structs.Player, match *Structs.Match) {
 	slot := FindUserSlotInMatchById(player.Stats.UserID, match)
 	match.SlotId[slot] = -1
 	match.SlotStatus[slot] = 1
+
 	for i := 0; i < 8; i++ {
 		if match.SlotId[i] != -1 && match.SlotId[i] != player.Stats.UserID {
 			plr := GetPlayerById(match.SlotId[i])
 			Packets.WriteMatchUpdate(*plr, *match)
 		}
 	}
+	setnewleader := false
 	peopleinlobby := 0
 	for i := 0; i < 8; i++ {
 		if match.SlotId[i] != -1 {
+			if !setnewleader {
+				match.HostId = match.SlotId[i]
+				setnewleader = true
+			}
 			peopleinlobby++
 		}
 	}
