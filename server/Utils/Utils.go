@@ -107,3 +107,14 @@ func ReadOsuString(r *bytes.Reader) (string, error) {
 
 	return "", fmt.Errorf("invalid osu! string prefix: %x", prefix)
 }
+func CalculatePacketOffset(build int, packet int) int16 {
+	response := packet
+
+	if build < 338 && packet > 52 {
+		response = packet - 1
+	}
+	if build > 1700 && packet > 11 {
+		return int16(packet) - 1
+	}
+	return int16(response)
+}

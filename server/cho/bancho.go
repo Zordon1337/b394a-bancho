@@ -95,30 +95,35 @@ func handleClient(client net.Conn) {
 	}
 	if stats.UserID < 1 {
 		Utils.LogInfo(username + " attempted to login with invalid password")
-		Packets.WriteLoginReply(client, -1)
+		Packets.WriteLoginReply(client, -1, int(player.Build))
 		return
 	}
 	Utils.LogInfo(username + " logged in on build " + build)
-	Packets.WriteLoginReply(client, player.Stats.UserID)
+	Packets.WriteLoginReply(client, player.Stats.UserID, int(player.Build))
 	if build2 > 394 {
-		Packets.WriteProtcolNegotiation(client, 5)
+		Packets.WriteProtcolNegotiation(client, 5, int(player.Build))
 	}
-	Packets.WriteChannelJoinSuccess(client, "#osu")
+	Packets.WriteChannelJoinSuccess(client, "#osu", int(player.Build))
 	if db.IsRestricted(stats.UserID) {
-		Packets.WriteMessage(client, "BanchoBot", "You are restricted, because of that you can't submit any new scores", player.Username)
+		Packets.WriteMessage(client, "BanchoBot", "You are restricted, because of that you can't submit any new scores", player.Username, int(player.Build))
 	}
 	db.UpdateLastOnline(player.Username)
 	addPlayer(&player)
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
-	Packets.WriteAnnounce(player.Conn, "Welcome to bancho, Mr. "+player.Username)
+	Packets.WriteAnnounce(player.Conn, "Welcome to bancho, Mr. "+player.Username, int(player.Build))
 	playersMu.Lock()
 	for _, player1 := range players {
-		Packets.WriteUserStats(*player1, player, 2)
+		Packets.WriteUserStats(*player1, player, 2, int(player.Build))
+		if player1.Build > 1717 {
+			Packets.WriteUserPresense(*player1, player, 2, int(player.Build))
+		}
 	}
 	for _, player1 := range players {
-
-		Packets.WriteUserStats(player, *player1, 2)
+		Packets.WriteUserStats(player, *player1, 2, int(player.Build))
+		if player.Build > 1717 {
+			Packets.WriteUserPresense(player, *player1, 2, int(player.Build))
+		}
 	}
 	playersMu.Unlock()
 	go func() {
@@ -129,12 +134,12 @@ func handleClient(client net.Conn) {
 				if stats2.Accuracy != player.Stats.Accuracy || stats2.PlayCount != player.Stats.PlayCount || stats2.RankedScore != player.Stats.RankedScore || stats2.Rank != player.Stats.Rank || stats2.TotalScore != player.Stats.TotalScore {
 					player.Stats = stats2
 					playersMu.Lock()
-					/*for _, player1 := range players {
-						Packets.WriteUserStats(player1.Conn, player, 2)
-					}*/
+					for _, player1 := range players {
+						Packets.WriteUserStats(*player1, player, 2, int(player1.Build))
+					}
 					playersMu.Unlock()
 				}
-				Packets.WritePing(client)
+				Packets.WritePing(client, int(player.Build))
 				if err != nil {
 					return
 				}
@@ -204,11 +209,11 @@ func handleClient(client net.Conn) {
 			}
 		case 3: // user stats request
 			{
-				Packets.WriteUserStats(player, player, 2)
+				Packets.WriteUserStats(player, player, 2, int(player.Build))
 				break
 			}
 
-		case 32: // Create Match
+		case Utils.CalculatePacketOffset(int(player.Build), 32): // Create Match
 			{
 				buf := bytes.NewReader(data)
 				match := new(Structs.Match)
@@ -308,7 +313,7 @@ func handleClient(client net.Conn) {
 				AddMatch(match)
 				break
 			}
-		case 33: // Join Match
+		case Utils.CalculatePacketOffset(int(player.Build), 33): // Join Match
 			{
 				buf := bytes.NewReader(data)
 				var matchid byte
@@ -325,30 +330,30 @@ func handleClient(client net.Conn) {
 				}
 				break
 			}
-		case 31:
+		case Utils.CalculatePacketOffset(int(player.Build), 31):
 			{ // Join Lobby
 				player.IsInLobby = true
 				for _, match := range MpMatches {
-					Packets.WriteMatchUpdate(player, *match)
+					Packets.WriteMatchUpdate(player, *match, int(player.Build))
 				}
 				break
 			}
-		case 30:
+		case Utils.CalculatePacketOffset(int(player.Build), 30):
 			{
 				player.IsInLobby = false
 				break
 			}
-		case 34: // Part Match aka quit match
+		case Utils.CalculatePacketOffset(int(player.Build), 34): // Part Match aka quit match
 			{
 				PartMatch(&player, player.CurrentMatch)
 				break
 			}
-		case 56: // unready
+		case Utils.CalculatePacketOffset(int(player.Build), 56): // unready
 			{
 				SetSlotStatusById(player.Stats.UserID, player.CurrentMatch, 4)
 				break
 			}
-		case 45: // Start match
+		case Utils.CalculatePacketOffset(int(player.Build), 45): // Start match
 			{
 				m := player.CurrentMatch
 				m.InProgress = true
@@ -362,14 +367,14 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if m.SlotId[i] != -1 {
 						plr := GetPlayerById(m.SlotId[i])
-						Packets.WriteMatchUpdate(*plr, *m)
-						Packets.WriteMatchStart(*plr, *m)
+						Packets.WriteMatchUpdate(*plr, *m, int(player.Build))
+						Packets.WriteMatchStart(*plr, *m, int(player.Build))
 					}
 				}
 
 				break
 			}
-		case 61:
+		case Utils.CalculatePacketOffset(int(player.Build), 61):
 			{
 				m := player.CurrentMatch
 				m.SkippingNeededToSkip--
@@ -377,13 +382,13 @@ func handleClient(client net.Conn) {
 					for i := 0; i < 8; i++ {
 						if m.SlotId[i] != -1 && m.SlotStatus[i] == 32 { // is player and is playing
 							plr := GetPlayerById(m.SlotId[i])
-							Packets.WriteMatchSkip(plr.Conn)
+							Packets.WriteMatchSkip(plr.Conn, int(player.Build))
 						}
 					}
 				}
 				break
 			}
-		case 48:
+		case Utils.CalculatePacketOffset(int(player.Build), 48):
 			{ // score update
 
 				score := Structs.ReadScoreFrameFromStream(data)
@@ -392,12 +397,12 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if m.SlotId[i] != -1 && m.SlotStatus[i] == 32 { // is player and is playing
 						plr := GetPlayerById(m.SlotId[i])
-						Packets.WriteMatchScoreUpdate(plr.Conn, Structs.WriteScoreFrameToBytes(score))
+						Packets.WriteMatchScoreUpdate(plr.Conn, Structs.WriteScoreFrameToBytes(score), int(player.Build))
 					}
 				}
 				break
 			}
-		case 50: // Match complete
+		case Utils.CalculatePacketOffset(int(player.Build), 50): // Match complete
 			{
 
 				m := player.CurrentMatch
@@ -406,13 +411,13 @@ func handleClient(client net.Conn) {
 						plr := GetPlayerById(m.SlotId[i])
 						m.SlotStatus[i] = 4
 						m.InProgress = false
-						Packets.WriteMatchUpdate(*plr, *m)
-						Packets.WriteMatchComplete(plr.Conn)
+						Packets.WriteMatchUpdate(*plr, *m, int(player.Build))
+						Packets.WriteMatchComplete(plr.Conn, int(player.Build))
 					}
 				}
 				break
 			}
-		case 53: // loaded into game
+		case Utils.CalculatePacketOffset(int(player.Build), 53): // loaded into game
 			{
 				m := player.CurrentMatch
 				m.LoadingPeople--
@@ -420,14 +425,14 @@ func handleClient(client net.Conn) {
 					for i := 0; i < 8; i++ {
 						if m.SlotId[i] != -1 && m.SlotStatus[i] == 32 { // is player and is playing
 							plr := GetPlayerById(m.SlotId[i])
-							Packets.MatchAllPlayersLoaded(plr.Conn)
+							Packets.MatchAllPlayersLoaded(plr.Conn, int(player.Build))
 						}
 					}
 				}
 
 				break
 			}
-		case 42: // Beatmap change
+		case Utils.CalculatePacketOffset(int(player.Build), 42): // Beatmap change
 			{
 				buf := bytes.NewReader(data)
 				match := player.CurrentMatch
@@ -522,12 +527,12 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if match.SlotId[i] != -1 {
 						plr := GetPlayerById(match.SlotId[i])
-						Packets.WriteMatchUpdate(*plr, *match)
+						Packets.WriteMatchUpdate(*plr, *match, int(player.Build))
 					}
 				}
 				break
 			}
-		case 52: // Mods
+		case Utils.CalculatePacketOffset(int(player.Build), 52): // Mods
 			{
 				m := player.CurrentMatch
 				buf := bytes.NewReader(data)
@@ -540,12 +545,12 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if m.SlotId[i] != -1 {
 						plr := GetPlayerById(m.SlotId[i])
-						Packets.WriteMatchUpdate(*plr, *m)
+						Packets.WriteMatchUpdate(*plr, *m, int(player.Build))
 					}
 				}
 				break
 			}
-		case 21:
+		case Utils.CalculatePacketOffset(int(player.Build), 21):
 			{
 				buf := bytes.NewReader(data)
 				dat, err := Utils.ReadOsuString(buf)
@@ -556,7 +561,7 @@ func handleClient(client net.Conn) {
 				Utils.LogInfo("Osu! reported an error: %s", dat)
 				break
 			}
-		case 40: // Ready
+		case Utils.CalculatePacketOffset(int(player.Build), 40): // Ready
 			{
 				match := player.CurrentMatch
 				if match != nil { // we don't want to ready when we are not in a match
@@ -568,7 +573,26 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if match.SlotId[i] != -1 {
 						plr := GetPlayerById(match.SlotId[i])
-						Packets.WriteMatchUpdate(*plr, *match)
+						Packets.WriteMatchUpdate(*plr, *match, int(player.Build))
+					}
+				}
+				break
+			}
+		case Utils.CalculatePacketOffset(int(player.Build), 80):
+			{
+				buf := bytes.NewReader(data)
+				var infotype int32
+				err := binary.Read(buf, binary.LittleEndian, &infotype)
+				if err != nil {
+					Utils.LogErr("Failed to read infotype: ", err.Error())
+					break
+				}
+				Utils.LogInfo("Got requrest with infotype: ", infotype)
+
+				for _, player1 := range players {
+					Packets.WriteUserStats(player, *player1, 2, int(player.Build))
+					if player.Build > 1717 && player.Stats.UserID != player1.Stats.UserID {
+						Packets.WriteUserPresense(player, *player1, 2, int(player.Build))
 					}
 				}
 				break
@@ -632,7 +656,7 @@ func handleMsg(player Structs.Player, data []byte) {
 	playersMu.Lock()
 	for _, player1 := range players {
 		if player1.Username != player.Username {
-			Packets.WriteMessage(player1.Conn, sender, msg, target)
+			Packets.WriteMessage(player1.Conn, sender, msg, target, int(player.Build))
 		}
 	}
 	playersMu.Unlock()
@@ -642,7 +666,7 @@ func handleMsg(player Structs.Player, data []byte) {
 		for _, player1 := range players {
 			lines := strings.Split(banchobotthoughts, "\n")
 			for i := 0; i < len(lines); i++ {
-				Packets.WriteMessage(player1.Conn, "BanchoBot", lines[i], "#osu")
+				Packets.WriteMessage(player1.Conn, "BanchoBot", lines[i], "#osu", int(player.Build))
 			}
 		}
 		playersMu.Unlock()
@@ -696,7 +720,7 @@ func handleStatus(player Structs.Player, data []byte) {
 	}
 	playersMu.Lock()
 	for _, player1 := range players {
-		Packets.WriteUserStats(*player1, player, 0)
+		Packets.WriteUserStats(*player1, player, 0, int(player.Build))
 	}
 	playersMu.Unlock()
 }
@@ -711,8 +735,8 @@ func removePlayer(username string, id int32) {
 	delete(players, username)
 	Utils.LogInfo("Player disconnected: %s\n", username)
 	for _, player1 := range players {
-		Packets.WriteIrcQuit(player1.Conn, username)
-		Packets.WriteUserQuit(player1.Conn, id)
+		Packets.WriteIrcQuit(player1.Conn, username, int(player1.Build))
+		Packets.WriteUserQuit(player1.Conn, id, int(player1.Build))
 	}
 }
 func AddMatch(match *Structs.Match) {
@@ -722,7 +746,7 @@ func AddMatch(match *Structs.Match) {
 	playersMu.Lock()
 	for _, player1 := range players {
 		if player1.IsInLobby {
-			Packets.WriteMatchUpdate(*player1, *match)
+			Packets.WriteMatchUpdate(*player1, *match, int(player1.Build))
 		}
 	}
 	playersMu.Unlock()
@@ -781,7 +805,7 @@ func SetSlotStatusById(userid int32, match *Structs.Match, newstatus byte) {
 	for i := 0; i < 8; i++ {
 		if match.SlotId[i] != -1 {
 			plr := GetPlayerById(match.SlotId[i])
-			Packets.WriteMatchUpdate(*plr, *match)
+			Packets.WriteMatchUpdate(*plr, *match, int(plr.Build))
 		}
 	}
 }
@@ -792,7 +816,7 @@ func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
 	newslot := FindSlotForPlayer(match)
 	if newslot == -1 {
 		// match full
-		Packets.WriteMatchJoinFail(player.Conn)
+		Packets.WriteMatchJoinFail(player.Conn, int(player.Build))
 		return false
 	} else {
 		match.SlotId[newslot] = player.Stats.UserID
@@ -800,7 +824,7 @@ func JoinMatch(player *Structs.Player, match *Structs.Match) bool {
 		for i := 0; i < 8; i++ {
 			if match.SlotId[i] != -1 && match.SlotId[i] != player.Stats.UserID {
 				plr := GetPlayerById(match.SlotId[i])
-				Packets.WriteMatchUpdate(*plr, *match)
+				Packets.WriteMatchUpdate(*plr, *match, int(plr.Build))
 			}
 		}
 		Packets.WriteMatchJoinSuccess(player.Conn, *match, int32(player.Build))
@@ -827,7 +851,7 @@ func PartMatch(player *Structs.Player, match *Structs.Match) {
 	for i := 0; i < 8; i++ {
 		if match.SlotId[i] != -1 && match.SlotId[i] != player.Stats.UserID {
 			plr := GetPlayerById(match.SlotId[i])
-			Packets.WriteMatchUpdate(*plr, *match)
+			Packets.WriteMatchUpdate(*plr, *match, int(plr.Build))
 		}
 	}
 	setnewleader := false
@@ -847,7 +871,7 @@ func PartMatch(player *Structs.Player, match *Structs.Match) {
 		playersMu.Lock()
 		for _, player1 := range players {
 			if player1.IsInLobby {
-				Packets.WriteDisbandMatch(player1.Conn, int(match.MatchId))
+				Packets.WriteDisbandMatch(player1.Conn, int(match.MatchId), int(player1.Build))
 			}
 		}
 		playersMu.Unlock()

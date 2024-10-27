@@ -7,7 +7,7 @@ import (
 	"retsu/Utils"
 )
 
-func WriteDisbandMatch(client net.Conn, matchid int) {
+func WriteDisbandMatch(client net.Conn, matchid int, build int) {
 	if client == nil {
 		return
 	}
@@ -16,7 +16,7 @@ func WriteDisbandMatch(client net.Conn, matchid int) {
 	if err != nil {
 		return
 	}
-	resp, err := Utils.SerializePacket(29, buf.Bytes())
+	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(build, int(29))), buf.Bytes())
 	if err != nil {
 		return
 	}

@@ -7,7 +7,7 @@ import (
 	"retsu/Utils"
 )
 
-func WriteUserQuit(client net.Conn, userid int32) {
+func WriteUserQuit(client net.Conn, userid int32, build int) {
 	if client == nil {
 		return
 	}
@@ -16,7 +16,7 @@ func WriteUserQuit(client net.Conn, userid int32) {
 	if err != nil {
 		return
 	}
-	resp, err := Utils.SerializePacket(13, buf.Bytes())
+	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(int(build), int(13))), buf.Bytes())
 	if err != nil {
 		return
 	}

@@ -7,7 +7,7 @@ import (
 	"retsu/Utils"
 )
 
-func WriteAnnounce(client net.Conn, msg string) {
+func WriteAnnounce(client net.Conn, msg string, build int) {
 	if client == nil {
 		return
 	}
@@ -16,7 +16,7 @@ func WriteAnnounce(client net.Conn, msg string) {
 	if err != nil {
 		return
 	}
-	resp, err := Utils.SerializePacket(25, buffer.Bytes())
+	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(build, int(25))), buffer.Bytes())
 	if err != nil {
 		return
 	}

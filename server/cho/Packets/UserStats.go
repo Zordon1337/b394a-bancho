@@ -3,6 +3,7 @@ package Packets
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"retsu/Utils"
 	"retsu/cho/Structs"
 	"strconv"
@@ -14,11 +15,14 @@ func GetStatusUpdate(receiver Structs.Player, user Structs.Player) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-	err = binary.Write(buffer, binary.LittleEndian, user.Status.BeatmapUpdate)
-	if err != nil {
-		return nil, err
+	if receiver.Build < 1701 {
+		err = binary.Write(buffer, binary.LittleEndian, user.Status.BeatmapUpdate)
+		if err != nil {
+			return nil, err
+		}
 	}
-	if user.Status.BeatmapUpdate {
+	fmt.Println(user.Status.BeatmapUpdate)
+	if user.Status.BeatmapUpdate || receiver.Build > 1700 {
 		err = binary.Write(buffer, binary.LittleEndian, Utils.WriteOsuString(user.Status.StatusText))
 		if err != nil {
 			return nil, err
@@ -27,12 +31,13 @@ func GetStatusUpdate(receiver Structs.Player, user Structs.Player) ([]byte, erro
 		if err != nil {
 			return nil, err
 		}
+
 		err = binary.Write(buffer, binary.LittleEndian, uint16(user.Status.CurrentMods))
 		if err != nil {
 			return nil, err
 		}
 		if receiver.Build > 483 {
-			err = binary.Write(buffer, binary.LittleEndian, user.Status.PlayMode)
+			err = binary.Write(buffer, binary.LittleEndian, (user.Status.PlayMode))
 			if err != nil {
 				return nil, err
 			}
@@ -44,7 +49,7 @@ func GetStatusUpdate(receiver Structs.Player, user Structs.Player) ([]byte, erro
 	}
 	return buffer.Bytes(), nil
 }
-func WriteUserStats(receiver Structs.Player, user Structs.Player, completeness byte) {
+func WriteUserStats(receiver Structs.Player, user Structs.Player, completeness byte, build int) {
 	if receiver.Conn == nil {
 		return
 	}
@@ -54,9 +59,14 @@ func WriteUserStats(receiver Structs.Player, user Structs.Player, completeness b
 	if err != nil {
 		return
 	}
-	err = binary.Write(buffer, binary.LittleEndian, completeness) // Completeness
-	if err != nil {
-		return
+	if receiver.Build < 1717 {
+		err = binary.Write(buffer, binary.LittleEndian, completeness) // Completeness, only for b1717 and below
+		if err != nil {
+			return
+		}
+	} else {
+
+		completeness = 1
 	}
 	statusupdate, err := GetStatusUpdate(receiver, user)
 	if err != nil {
@@ -131,7 +141,7 @@ func WriteUserStats(receiver Structs.Player, user Structs.Player, completeness b
 			}
 		}
 	}
-	resp, err := Utils.SerializePacket(12, buffer.Bytes())
+	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(int(build), int(12))), buffer.Bytes())
 	if err != nil {
 		return
 	}

@@ -5,12 +5,12 @@ import (
 	"retsu/Utils"
 )
 
-func WriteMatchJoinFail(client net.Conn) {
+func WriteMatchJoinFail(client net.Conn, build int) {
 	if client == nil {
 		return
 	}
 
-	resp, err := Utils.SerializePacket(38, []byte{})
+	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(build, int(38))), []byte{})
 	if err != nil {
 		return
 	}

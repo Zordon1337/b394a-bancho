@@ -5,11 +5,11 @@ import (
 	"retsu/Utils"
 )
 
-func MatchAllPlayersLoaded(client net.Conn) {
+func MatchAllPlayersLoaded(client net.Conn, build int) {
 	if client == nil {
 		return
 	}
-	resp, err := Utils.SerializePacket(54, []byte{}) // empty packet lol
+	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(build, int(54))), []byte{}) // empty packet lol
 	if err != nil {
 		return
 	}

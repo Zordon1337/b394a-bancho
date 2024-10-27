@@ -7,7 +7,7 @@ import (
 	"retsu/Utils"
 )
 
-func WriteProtcolNegotiation(client net.Conn, response int32) {
+func WriteProtcolNegotiation(client net.Conn, response int32, build int) {
 	if client == nil {
 		return
 	}
@@ -16,7 +16,7 @@ func WriteProtcolNegotiation(client net.Conn, response int32) {
 	if err != nil {
 		return
 	}
-	resp, err := Utils.SerializePacket(76, buffer.Bytes())
+	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(int(build), int(76))), buffer.Bytes())
 	if err != nil {
 		return
 	}

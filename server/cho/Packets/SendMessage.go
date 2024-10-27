@@ -7,7 +7,7 @@ import (
 	"retsu/Utils"
 )
 
-func WriteMessage(client net.Conn, sender string, message string, target string) {
+func WriteMessage(client net.Conn, sender string, message string, target string, build int) {
 	if client == nil {
 		return
 	}
@@ -24,7 +24,7 @@ func WriteMessage(client net.Conn, sender string, message string, target string)
 	if err != nil {
 		return
 	}
-	resp, err := Utils.SerializePacket(7, buf.Bytes())
+	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(int(build), int(7))), buf.Bytes())
 	if err != nil {
 		return
 	}

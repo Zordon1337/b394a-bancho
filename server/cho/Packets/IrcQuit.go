@@ -7,7 +7,7 @@ import (
 	"retsu/Utils"
 )
 
-func WriteIrcQuit(client net.Conn, username string) {
+func WriteIrcQuit(client net.Conn, username string, build int) {
 	if client == nil {
 		return
 	}
@@ -17,7 +17,7 @@ func WriteIrcQuit(client net.Conn, username string) {
 		Utils.LogErr("An error occurred while sending IrcQuit from " + username)
 		return
 	}
-	resp, err := Utils.SerializePacket(10, buf.Bytes())
+	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(build, int(10))), buf.Bytes())
 	if err != nil {
 		return
 	}

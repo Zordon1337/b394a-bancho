@@ -39,5 +39,5 @@ func Frontend() {
 	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("./frontend/src/web/css/"))))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("./frontend/src/web/js/"))))
 	r.PathPrefix("/img/").Handler(http.StripPrefix("/img/", http.FileServer(http.Dir("./frontend/src/web/img/"))))
-	http.ListenAndServe("0.0.0.0:8080", r)
+	http.ListenAndServe("0.0.0.0:80", r)
 }
