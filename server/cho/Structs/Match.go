@@ -94,29 +94,32 @@ func GetBytesFromMatch(match *Match, build int32) []byte {
 		}
 	}
 	for i := 0; i < 8; i++ {
-		err = binary.Write(buf, binary.LittleEndian, match.SlotId[i])
-		if err != nil {
-			return nil
+		if match.SlotStatus[i]&0x07C > 0 {
+			err = binary.Write(buf, binary.LittleEndian, match.SlotId[i])
+			if err != nil {
+				return nil
+			}
 		}
+
 	}
 	if build > 399 {
-		err = binary.Write(buf, binary.LittleEndian, match.SlotId)
+		err = binary.Write(buf, binary.LittleEndian, match.HostId)
 		if err != nil {
 			return nil
 		}
 	}
 	if build > 483 {
-		err = binary.Write(buf, binary.LittleEndian, match.Mode)
+		err = binary.Write(buf, binary.LittleEndian, byte(match.Mode))
 		if err != nil {
 			return nil
 		}
 	}
 	if build > 535 {
-		err = binary.Write(buf, binary.LittleEndian, match.ScoringType)
+		err = binary.Write(buf, binary.LittleEndian, byte(match.ScoringType))
 		if err != nil {
 			return nil
 		}
-		err = binary.Write(buf, binary.LittleEndian, match.TeamType)
+		err = binary.Write(buf, binary.LittleEndian, byte(match.TeamType))
 		if err != nil {
 			return nil
 		}

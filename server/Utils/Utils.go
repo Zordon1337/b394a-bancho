@@ -26,7 +26,6 @@ func SerializePacket(packet int16, data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("sending packet ", packet)
 	return buffer.Bytes(), nil
 }
 
