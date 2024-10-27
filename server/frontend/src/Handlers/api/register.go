@@ -13,6 +13,10 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "-1")
 		return
 	}
+	if !Utils.CanRegister() {
+		fmt.Fprintf(w, "ERR\nRegistering is currently disabled, please contact administrator")
+		return
+	}
 	if r.URL.Query().Get("u") != "" && r.URL.Query().Get("p") != "" {
 		user := r.URL.Query().Get("u")
 		pass := r.URL.Query().Get("p")
