@@ -146,4 +146,5 @@ func WriteUserStats(receiver Structs.Player, user Structs.Player, completeness b
 		return
 	}
 	receiver.Conn.Write(resp)
+
 }

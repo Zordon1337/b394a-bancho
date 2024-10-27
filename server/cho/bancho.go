@@ -112,21 +112,28 @@ func handleClient(client net.Conn) {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 	Packets.WriteAnnounce(player.Conn, "Welcome to bancho, Mr. "+player.Username, int(player.Build))
-	playersMu.Lock()
-	for _, player1 := range players {
-		Packets.WriteUserStats(*player1, player, 2, int(player.Build))
-		if player1.Build > 1717 {
-			Packets.WriteUserPresense(*player1, player, 2, int(player.Build))
-		}
-	}
-	for _, player1 := range players {
-		Packets.WriteUserStats(player, *player1, 2, int(player.Build))
-		if player.Build > 1717 {
-			Packets.WriteUserPresense(player, *player1, 2, int(player.Build))
-		}
-	}
-	playersMu.Unlock()
 	go func() {
+		time.Sleep(1000)
+		playersMu.Lock()
+		for _, player1 := range players {
+			if player1.Build > 1717 {
+				Packets.WriteUserStats(*player1, player, 2, int(player1.Build))
+				Packets.WriteUserPresense(*player1, player, 2, int(player1.Build))
+			} else {
+				Packets.WriteUserStats(*player1, player, 2, int(player1.Build))
+			}
+		}
+		for _, player1 := range players {
+			if player.Build > 1717 && player.Stats.UserID != player1.Stats.UserID {
+				Packets.WriteUserPresense(player, *player1, 2, int(player.Build))
+			}
+			Packets.WriteUserStats(player, *player1, 2, int(player.Build))
+
+		}
+		playersMu.Unlock()
+	}()
+	go func() {
+
 		for {
 			select {
 			case <-ticker.C:
@@ -190,7 +197,9 @@ func handleClient(client net.Conn) {
 
 		case 0: // status change
 			{
-				handleStatus(player, data)
+
+				handleStatus(&player, data)
+
 				break
 			}
 		case 1: // irc msg
@@ -209,7 +218,7 @@ func handleClient(client net.Conn) {
 			}
 		case 3: // user stats request
 			{
-				Packets.WriteUserStats(player, player, 2, int(player.Build))
+
 				break
 			}
 
@@ -578,6 +587,25 @@ func handleClient(client net.Conn) {
 				}
 				break
 			}
+		case Utils.CalculatePacketOffset(int(player.Build), 86):
+			{
+				buf := bytes.NewReader(data)
+				var leng int16
+				err := binary.Read(buf, binary.LittleEndian, &leng)
+				if err != nil {
+					Utils.LogErr("Failed to read infotype: ", err.Error())
+					break
+				}
+
+				for _, player1 := range players {
+					if player.Build > 1717 && player.Stats.UserID != player1.Stats.UserID {
+						Packets.WriteUserPresense(player, *player1, 2, int(player.Build))
+					}
+					Packets.WriteUserStats(player, *player1, 2, int(player.Build))
+
+				}
+				break
+			}
 		case Utils.CalculatePacketOffset(int(player.Build), 80):
 			{
 				buf := bytes.NewReader(data)
@@ -587,14 +615,15 @@ func handleClient(client net.Conn) {
 					Utils.LogErr("Failed to read infotype: ", err.Error())
 					break
 				}
-				Utils.LogInfo("Got requrest with infotype: ", infotype)
 
 				for _, player1 := range players {
-					Packets.WriteUserStats(player, *player1, 2, int(player.Build))
 					if player.Build > 1717 && player.Stats.UserID != player1.Stats.UserID {
 						Packets.WriteUserPresense(player, *player1, 2, int(player.Build))
 					}
+					Packets.WriteUserStats(player, *player1, 2, int(player.Build))
+
 				}
+
 				break
 			}
 		/*case 71: // TransferHost
@@ -673,7 +702,7 @@ func handleMsg(player Structs.Player, data []byte) {
 	}
 	Utils.LogInfo(sender + "->" + target + ": " + msg)
 }
-func handleStatus(player Structs.Player, data []byte) {
+func handleStatus(player *Structs.Player, data []byte) {
 	var status byte
 	var bmapUpdate bool
 	var mods uint16
@@ -682,13 +711,16 @@ func handleStatus(player Structs.Player, data []byte) {
 	if err != nil {
 		Utils.LogErr("Error occurred while reading Status from " + player.Username + " " + err.Error())
 	}
-	err = binary.Read(buf, binary.LittleEndian, &bmapUpdate)
-	if err != nil {
-		Utils.LogErr("Error occurred while reading BeatmapUpdate from " + player.Username + " " + err.Error())
+	if player.Build < 1717 {
+		err = binary.Read(buf, binary.LittleEndian, &bmapUpdate)
+		if err != nil {
+			Utils.LogErr("Error occurred while reading BeatmapUpdate from " + player.Username + " " + err.Error())
+		}
+		player.Status.BeatmapUpdate = bmapUpdate
 	}
+
 	player.Status.Status = status
-	player.Status.BeatmapUpdate = bmapUpdate
-	if bmapUpdate {
+	if bmapUpdate || player.Build > 1717 {
 		statusText, err := Utils.ReadOsuString(buf)
 		if err != nil {
 			Utils.LogErr("Failed to read statusText:", err)
@@ -720,7 +752,12 @@ func handleStatus(player Structs.Player, data []byte) {
 	}
 	playersMu.Lock()
 	for _, player1 := range players {
-		Packets.WriteUserStats(*player1, player, 0, int(player.Build))
+		if player1.Build > 1717 {
+			Packets.WriteUserStats(*player1, *player, 2, int(player1.Build))
+			Packets.WriteUserPresense(*player1, *player, 2, int(player1.Build))
+		} else {
+			Packets.WriteUserStats(*player1, *player, 2, int(player1.Build))
+		}
 	}
 	playersMu.Unlock()
 }

@@ -64,4 +64,5 @@ func WriteUserPresense(receiver Structs.Player, user Structs.Player, completenes
 		return
 	}
 	receiver.Conn.Write(resp)
+
 }
