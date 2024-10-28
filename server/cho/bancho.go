@@ -332,6 +332,66 @@ func handleClient(client net.Conn) {
 				AddMatch(match)
 				break
 			}
+
+		case Utils.CalculatePacketOffset(int(player.Build), 17): // StartSpec
+			{
+				buf := bytes.NewReader(data)
+				var userid int32
+				binary.Read(buf, binary.LittleEndian, &userid)
+				for _, player1 := range players {
+					if player1.Stats.UserID == userid {
+						if player.Build > 1700 && player1.Build < 1700 {
+							Packets.WriteAnnounce(player.Conn, "Player that you want spectate, has too old client", int(player.Build))
+							break
+						} else if player.Build < 1700 && player1.Build > 1700 {
+							Packets.WriteAnnounce(player.Conn, "Player that you want spectate, has too new client", int(player.Build))
+							break
+						}
+						fmt.Printf("%s started spectating %s\n", player.Username, player1.Username)
+						Packets.WriteSpecJoined(player1.Conn, player.Stats.UserID, int(player1.Build))
+						if player1.Spectators == nil {
+							player1.Spectators = make(map[int32]*Structs.Player)
+						}
+						player1.Spectators[player.Stats.UserID] = &player
+						player.CurrentlySpectating = player1
+					}
+				}
+				break
+			}
+		case Utils.CalculatePacketOffset(int(player.Build), 18): // StopSpec
+			{
+
+				if player.CurrentlySpectating != nil {
+					player1 := player.CurrentlySpectating
+					if player.Build > 1700 && player1.Build < 1700 {
+						Packets.WriteAnnounce(player.Conn, "Player that you want spectate, has too old client", int(player.Build))
+						return
+					} else if player.Build < 1700 && player1.Build > 1700 {
+						Packets.WriteAnnounce(player.Conn, "Player that you want spectate, has too new client", int(player.Build))
+						return
+					}
+					Packets.WriteSpecQuited(player1.Conn, player.Stats.UserID, int(player1.Build))
+					if player1.Spectators != nil {
+						delete(player1.Spectators, player.Stats.UserID)
+					}
+					player.CurrentlySpectating = nil
+					fmt.Printf("%s stopped spectating %s\n", player.Username, player1.Username)
+
+				}
+				break
+			}
+		case Utils.CalculatePacketOffset(int(player.Build), 19): // SendFrames
+			{
+				for _, player1 := range player.Spectators {
+					packet, err := Utils.SerializePacket(15, data)
+					if err != nil {
+						break
+					}
+					fmt.Printf("%s sent replay frames to %s\n", player.Username, player1.Username)
+					player1.Conn.Write(packet)
+				}
+				break
+			}
 		case Utils.CalculatePacketOffset(int(player.Build), 33): // Join Match
 			{
 				buf := bytes.NewReader(data)
