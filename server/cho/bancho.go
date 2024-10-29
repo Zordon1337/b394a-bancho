@@ -113,7 +113,7 @@ func handleClient(client net.Conn) {
 	defer ticker.Stop()
 	Packets.WriteAnnounce(player.Conn, "Welcome to bancho, Mr. "+player.Username, int(player.Build))
 	go func() {
-		time.Sleep(1000)
+		time.Sleep(500)
 		playersMu.Lock()
 		for _, player1 := range players {
 			if player1.Build > 1717 {
@@ -123,6 +123,7 @@ func handleClient(client net.Conn) {
 				Packets.WriteUserStats(*player1, player, 2, int(player1.Build))
 			}
 		}
+		time.Sleep(500)
 		for _, player1 := range players {
 			if player.Build > 1717 && player.Stats.UserID != player1.Stats.UserID {
 				Packets.WriteUserPresense(player, *player1, 2, int(player.Build))
@@ -347,7 +348,7 @@ func handleClient(client net.Conn) {
 							Packets.WriteAnnounce(player.Conn, "Player that you want spectate, has too new client", int(player.Build))
 							break
 						}
-						fmt.Printf("%s started spectating %s\n", player.Username, player1.Username)
+						fmt.Printf("%s started spect	ating %s\n", player.Username, player1.Username)
 						Packets.WriteSpecJoined(player1.Conn, player.Stats.UserID, int(player1.Build))
 						if player1.Spectators == nil {
 							player1.Spectators = make(map[int32]*Structs.Player)
