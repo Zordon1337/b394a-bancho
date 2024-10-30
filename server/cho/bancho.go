@@ -348,7 +348,7 @@ func handleClient(client net.Conn) {
 							Packets.WriteAnnounce(player.Conn, "Player that you want spectate, has too new client", int(player.Build))
 							break
 						}
-						fmt.Printf("%s started spect	ating %s\n", player.Username, player1.Username)
+						fmt.Printf("%s started spectating %s\n", player.Username, player1.Username)
 						Packets.WriteSpecJoined(player1.Conn, player.Stats.UserID, int(player1.Build))
 						if player1.Spectators == nil {
 							player1.Spectators = make(map[int32]*Structs.Player)
@@ -384,7 +384,7 @@ func handleClient(client net.Conn) {
 		case Utils.CalculatePacketOffset(int(player.Build), 19): // SendFrames
 			{
 				for _, player1 := range player.Spectators {
-					packet, err := Utils.SerializePacket(15, data)
+					packet, err := Utils.SerializePacket(Utils.CalculatePacketOffset(int(player.Build), 16), data)
 					if err != nil {
 						break
 					}
@@ -447,8 +447,11 @@ func handleClient(client net.Conn) {
 				for i := 0; i < 8; i++ {
 					if m.SlotId[i] != -1 {
 						plr := GetPlayerById(m.SlotId[i])
-						Packets.WriteMatchUpdate(*plr, *m, int(player.Build))
-						Packets.WriteMatchStart(*plr, *m, int(player.Build))
+						go func() {
+							Packets.WriteMatchUpdate(*plr, *m, int(player.Build))
+							time.Sleep(1000)
+							Packets.WriteMatchStart(*plr, *m, int(player.Build))
+						}()
 					}
 				}
 

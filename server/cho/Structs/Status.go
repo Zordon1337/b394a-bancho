@@ -7,5 +7,5 @@ type Status struct {
 	BeatmapChecksum string
 	CurrentMods     uint16
 	PlayMode        byte
-	BeatmapId       int
+	BeatmapId       int32
 }

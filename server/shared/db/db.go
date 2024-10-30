@@ -86,8 +86,8 @@ func RegisterUser(username string, password string) error {
 		return fmt.Errorf("User already taken!")
 	}
 	hashedPassword := Utils.HashMD5(password)
-	stmt, err := db.Prepare(`INSERT INTO users (userid, username, password, ranked_score, accuracy, playcount, total_score, rank, lastonline, joindate)
-                             VALUES (?,?, ?, 0, 0.0, 0, 0, 0, ?, ?)`)
+	stmt, err := db.Prepare("INSERT INTO users (userid, username, password, ranked_score, accuracy, playcount, total_score, `rank`, lastonline, joindate) VALUES (?, ?, ?, 0, 0.0, 0, 0, 0, ?, ?)")
+
 	if err != nil {
 		return fmt.Errorf("failed to prepare statement: %v", err)
 	}

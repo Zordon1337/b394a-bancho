@@ -3,6 +3,7 @@ package Packets
 import (
 	"retsu/Utils"
 	"retsu/cho/Structs"
+	"time"
 )
 
 func WriteMatchUpdate(client Structs.Player, match Structs.Match, build int) {
@@ -14,5 +15,8 @@ func WriteMatchUpdate(client Structs.Player, match Structs.Match, build int) {
 	if err != nil {
 		return
 	}
-	client.Conn.Write(resp)
+	go func() {
+		time.Sleep(500)
+		client.Conn.Write(resp)
+	}()
 }
