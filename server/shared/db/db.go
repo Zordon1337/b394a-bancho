@@ -67,7 +67,7 @@ func GetUserFromDatabasePassword(username string, password string) Structs.UserS
 func GetUserFromDatabase(username string) User {
 	user := new(User)
 
-	rows, err := db.Query("SELECT userid, username, ranked_score, accuracy, playcount, total_score, rank, lastonline, joindate FROM users WHERE username = ?", username)
+	rows, err := db.Query("SELECT userid, username, ranked_score, accuracy, playcount, total_score, `rank`, lastonline, joindate FROM users WHERE username = ?", username)
 	if err != nil {
 		Utils.LogErr(err.Error())
 	}
@@ -142,6 +142,24 @@ func SetPassword(username string, currentpass string, newpass string) bool {
 		return false
 	}
 }
+func GetUsernameById(userid string) int32 {
+
+	rows, err := db.Query("SELECT username FROM users WHERE userid = ?", userid)
+	if err != nil {
+		Utils.LogErr(err.Error())
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var userid int32
+		err := rows.Scan(&userid)
+		if err != nil {
+			return -1
+		}
+		return userid
+	}
+	return -1
+}
 func GetUserIdByUsername(username string) int32 {
 
 	rows, err := db.Query("SELECT userid FROM users WHERE username = ?", username)
@@ -208,10 +226,190 @@ func InsertScore(score Utils.Score, scoreid int32) {
 	if err != nil {
 	}
 }
-
-func GetScores(mapchecksum string) string {
+func GetBestScorePlayer(mapchecksum string, userid string, playmode string) string {
 	var response string
 
+	rows, err := db.Query(`
+		SELECT 
+			s.scoreid,
+			s.mapchecksum,
+			s.Username,
+			s.OnlineScoreChecksum,
+			s.Count300,
+			s.Count100,
+			s.Count50,
+			s.CountGeki,
+			s.CountKatu,
+			s.CountMiss,
+			s.TotalScore,
+			s.MaxCombo,
+			s.Perfect,
+			s.Ranking,
+			s.EnabledMods,
+			s.Pass,
+			s.playmode,
+			s.Date
+		FROM scores AS s
+		INNER JOIN (
+			SELECT Username, MAX(TotalScore) AS MaxScore
+			FROM scores
+			WHERE mapchecksum = ?
+			GROUP BY Username
+		) AS maxScores ON s.Username = maxScores.Username AND s.TotalScore = maxScores.MaxScore
+		WHERE s.mapchecksum = ? && s.Username = ? && s.playmode = ?
+		ORDER BY s.TotalScore DESC;`, mapchecksum, mapchecksum, GetUsernameById(userid), playmode)
+
+	if err != nil {
+		log.Printf("Error executing query: %s", err)
+		return ""
+	}
+	defer rows.Close()
+	rowam := 1
+	for rows.Next() {
+		var score Utils.Score
+		var scoreid int32
+		err := rows.Scan(
+			&scoreid,
+			&score.FileChecksum,
+			&score.Username,
+			&score.OnlineScoreChecksum,
+			&score.Count300,
+			&score.Count100,
+			&score.Count50,
+			&score.CountGeki,
+			&score.CountKatu,
+			&score.CountMiss,
+			&score.TotalScore,
+			&score.MaxCombo,
+			&score.Perfect,
+			&score.Ranking,
+			&score.EnabledMods,
+			&score.Pass,
+			&score.Playmode,
+			&score.Date,
+		)
+		if err != nil {
+			Utils.LogErr("Error scanning row: %s", err)
+			continue
+		}
+
+		return fmt.Sprintf(
+			"\n%d|%s|%d|%d|%d|%d|%d|%d|%d|%d|%t|%s|%s|%d|%s",
+			scoreid,
+			score.Username,
+			score.TotalScore,
+			score.MaxCombo,
+			score.Count50,
+			score.Count100,
+			score.Count300,
+			score.CountMiss,
+			score.CountKatu,
+			score.CountGeki,
+			score.Perfect,
+			score.EnabledMods,
+			userid,
+			scoreid,
+			score.Date,
+		)
+		rowam++
+	}
+	return response + "\n"
+}
+func GetScores6(mapchecksum string, userid string, playmode string) string {
+	var response string
+
+	response += "\n"
+	response += "\n"
+	response += "\n"
+	response += GetBestScorePlayer(mapchecksum, userid, playmode)
+	rows, err := db.Query(`
+		SELECT 
+			s.scoreid,
+			s.mapchecksum,
+			s.Username,
+			s.OnlineScoreChecksum,
+			s.Count300,
+			s.Count100,
+			s.Count50,
+			s.CountGeki,
+			s.CountKatu,
+			s.CountMiss,
+			s.TotalScore,
+			s.MaxCombo,
+			s.Perfect,
+			s.Ranking,
+			s.EnabledMods,
+			s.Pass,
+			s.playmode,
+			s.Date
+		FROM scores AS s
+		INNER JOIN (
+			SELECT Username, MAX(TotalScore) AS MaxScore
+			FROM scores
+			WHERE mapchecksum = ?
+			GROUP BY Username
+		) AS maxScores ON s.Username = maxScores.Username AND s.TotalScore = maxScores.MaxScore
+		WHERE s.mapchecksum = ? && s.playmode = ?
+		ORDER BY s.TotalScore DESC;`, mapchecksum, mapchecksum, playmode)
+
+	if err != nil {
+		log.Printf("Error executing query: %s", err)
+		return ""
+	}
+	defer rows.Close()
+	rowam := 1
+	for rows.Next() {
+		var score Utils.Score
+		var scoreid int32
+		err := rows.Scan(
+			&scoreid,
+			&score.FileChecksum,
+			&score.Username,
+			&score.OnlineScoreChecksum,
+			&score.Count300,
+			&score.Count100,
+			&score.Count50,
+			&score.CountGeki,
+			&score.CountKatu,
+			&score.CountMiss,
+			&score.TotalScore,
+			&score.MaxCombo,
+			&score.Perfect,
+			&score.Ranking,
+			&score.EnabledMods,
+			&score.Pass,
+			&score.Playmode,
+			&score.Date,
+		)
+		if err != nil {
+			Utils.LogErr("Error scanning row: %s", err)
+			continue
+		}
+
+		response += fmt.Sprintf(
+			"\n%d|%s|%d|%d|%d|%d|%d|%d|%d|%d|%t|%s|%s|%d|%s",
+			scoreid,
+			score.Username,
+			score.TotalScore,
+			score.MaxCombo,
+			score.Count50,
+			score.Count100,
+			score.Count300,
+			score.CountMiss,
+			score.CountKatu,
+			score.CountGeki,
+			score.Perfect,
+			score.EnabledMods,
+			userid,
+			scoreid,
+			score.Date,
+		)
+		rowam++
+	}
+	return response
+}
+func GetScores(mapchecksum string) string {
+	var response string
 	rows, err := db.Query(`
 		SELECT 
 			s.scoreid,

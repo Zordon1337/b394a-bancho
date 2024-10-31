@@ -10,4 +10,5 @@ CREATE TABLE `users` (
   `lastonline` text NOT NULL,
   `joindate` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-INSERT INTO `users`(`userid`, `username`, `password`, `ranked_score`, `accuracy`, `playcount`, `total_score`, `rank`, `lastonline`) VALUES ('1','BanchoBot','nononoononononnoon','0','0','0','0','0','0','even server does not now')
+INSERT INTO `users`(`userid`, `username`, `password`, `ranked_score`, `accuracy`, `playcount`, `total_score`, `rank`, `lastonline`) VALUES ('1','BanchoBot','nononoononononnoon','0','0','0','0','0','0','even server does not know')
+ALTER TABLE `scores` ADD `playmode` TEXT NOT NULL AFTER `Accuracy`, ADD `Date` TEXT NOT NULL AFTER `playmode`; 

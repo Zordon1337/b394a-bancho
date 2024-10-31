@@ -21,6 +21,8 @@ type Score struct {
 	Ranking             string
 	EnabledMods         string
 	Pass                string
+	Playmode            string
+	Date                string
 }
 
 func GetInt(val string) int32 {
@@ -44,7 +46,7 @@ func GetBool(bo string) bool {
 	}
 	return bo1
 }
-func FormattedToScore(formatted string) Score {
+func FormattedToScore(formatted string, isnewscore bool) Score {
 	values := strings.Split(formatted, ":")
 	score := Score{
 		FileChecksum:        values[0],
@@ -62,6 +64,10 @@ func FormattedToScore(formatted string) Score {
 		Ranking:             values[12],
 		EnabledMods:         values[13],
 		Pass:                values[14],
+	}
+	if isnewscore {
+		score.Playmode = values[15]
+		score.Date = values[16]
 	}
 	return score
 }
