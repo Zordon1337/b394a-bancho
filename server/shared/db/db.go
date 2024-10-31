@@ -51,7 +51,7 @@ func GetJoinDate(username string) string {
 func GetUserFromDatabasePassword(username string, password string) Structs.UserStats {
 	user := new(Structs.UserStats)
 
-	rows, err := db.Query("SELECT userid, ranked_score, accuracy, playcount, total_score, rank FROM users WHERE username = ? AND password = ?", username, password)
+	rows, err := db.Query("SELECT userid, ranked_score, accuracy, playcount, total_score, `rank` FROM users WHERE username = ? AND password = ?", username, password)
 	if err != nil {
 		Utils.LogErr(err.Error())
 	}
