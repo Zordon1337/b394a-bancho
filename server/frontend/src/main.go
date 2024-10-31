@@ -7,14 +7,12 @@ import (
 	"retsu/frontend/src/Handlers/api"
 	"retsu/frontend/src/Handlers/userpanel"
 	"retsu/frontend/src/Handlers/web"
-	"retsu/shared/db"
 
 	"github.com/gorilla/mux"
 )
 
 func Frontend() {
 	Utils.LogInfo("Starting frontend")
-	db.InitDatabase()
 	r := mux.NewRouter()
 	r.HandleFunc("/web/osu-submit.php", web.HandleScore).Methods("GET", "POST")
 	r.HandleFunc("/web/osu-submit-modular.php", web.HandleModularScore).Methods("GET", "POST")

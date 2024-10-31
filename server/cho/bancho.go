@@ -32,7 +32,6 @@ func Bancho() {
 		Utils.LogErr(err.Error())
 		return
 	}
-	db.InitDatabase()
 	Utils.LogInfo("Socket listening for clients on " + addr)
 	Utils.LogInfo("Lets play osu!")
 	addPlayer(BanchoBot.GenerateProfile())
