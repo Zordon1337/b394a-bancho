@@ -3,6 +3,7 @@ package Utils
 import (
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Score struct {
@@ -68,16 +69,32 @@ func FormattedToScore(formatted string, isnewscore bool) Score {
 	if isnewscore {
 		score.Playmode = values[15]
 		score.Date = values[16]
+	} else {
+		score.Playmode = "0"
+		score.Date = time.Now().Format("2006-01-02 15:04:05")
 	}
 	return score
 }
-func CalculateAccuracy(score Score) float32 {
-	totalScore := float32(score.Count50*50 + score.Count100*100 + score.Count300*300 + score.CountGeki*300 + score.CountKatu*100)
-	totalHits := float32(score.Count50 + score.Count100 + score.Count300 + score.CountGeki + score.CountKatu + score.CountMiss)
+func CalculateAccuracy(score Score, isCtb bool) float32 {
+	if !isCtb {
+		totalScore := float32(score.Count50*50 + score.Count100*100 + score.Count300*300 + score.CountGeki*300 + score.CountKatu*100)
+		totalHits := float32(score.Count50 + score.Count100 + score.Count300 + score.CountGeki + score.CountKatu + score.CountMiss)
 
-	if totalHits > 0 {
-		return totalScore / (totalHits * 300)
+		if totalHits > 0 {
+			return totalScore / (totalHits * 300)
+		} else {
+			return 0
+		}
 	} else {
-		return 0
+
+		totalScore := float32(score.Count50 + score.Count100 + score.Count300 + score.CountGeki + score.CountKatu)
+		totalHits := float32(score.Count50 + score.Count100 + score.Count300 + score.CountGeki + score.CountKatu)
+
+		if totalHits > 0 {
+			return (totalScore / totalHits * 300)
+		} else {
+			return 0
+		}
 	}
+	return 0
 }

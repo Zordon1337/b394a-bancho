@@ -219,9 +219,9 @@ func GetNewScoreId() int32 {
 	return int32(rowsreturned)
 }
 func InsertScore(score Utils.Score, scoreid int32) {
-
-	rows, err := db.Query("INSERT INTO `scores`(`scoreid`, `mapchecksum`,`username`, `OnlineScoreChecksum`, `Count300`, `Count100`, `Count50`, `CountGeki`, `CountKatu`, `CountMiss`, `TotalScore`, `MaxCombo`, `Perfect`, `Ranking`, `EnabledMods`, `Pass`, `Accuracy`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		scoreid, score.FileChecksum, score.Username, score.OnlineScoreChecksum, score.Count300, score.Count100, score.Count50, score.CountGeki, score.CountKatu, score.CountMiss, score.TotalScore, score.MaxCombo, score.Perfect, score.Ranking, score.EnabledMods, score.EnabledMods, Utils.CalculateAccuracy(score))
+	isctb := score.Playmode != "0"
+	rows, err := db.Query("INSERT INTO `scores`(`scoreid`, `mapchecksum`,`username`, `OnlineScoreChecksum`, `Count300`, `Count100`, `Count50`, `CountGeki`, `CountKatu`, `CountMiss`, `TotalScore`, `MaxCombo`, `Perfect`, `Ranking`, `EnabledMods`, `Pass`, `Accuracy`,`playmode`,`Date`) VALUES (?,?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		scoreid, score.FileChecksum, score.Username, score.OnlineScoreChecksum, score.Count300, score.Count100, score.Count50, score.CountGeki, score.CountKatu, score.CountMiss, score.TotalScore, score.MaxCombo, score.Perfect, score.Ranking, score.EnabledMods, score.EnabledMods, Utils.CalculateAccuracy(score, isctb), score.Playmode, score.Date)
 	defer rows.Close()
 	if err != nil {
 	}
@@ -435,7 +435,7 @@ func GetScores(mapchecksum string) string {
 			WHERE mapchecksum = ?
 			GROUP BY Username
 		) AS maxScores ON s.Username = maxScores.Username AND s.TotalScore = maxScores.MaxScore
-		WHERE s.mapchecksum = ?
+		WHERE s.mapchecksum = ? && s.playmode = 0
 		ORDER BY s.TotalScore DESC;`, mapchecksum, mapchecksum)
 
 	if err != nil {
@@ -555,7 +555,7 @@ func UpdateRank(username string) {
 
 	user := new(User)
 
-	rows, err := db.Query("SELECT userid, username, ranked_score, accuracy, playcount, total_score, rank, lastonline, joindate FROM users ORDER BY ranked_score DESC")
+	rows, err := db.Query("SELECT userid, username, ranked_score, accuracy, playcount, total_score, `rank`, lastonline, joindate FROM users ORDER BY ranked_score DESC")
 	if err != nil {
 		Utils.LogErr(err.Error())
 	}

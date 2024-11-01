@@ -62,7 +62,11 @@ func handleClient(client net.Conn) {
 	username := strings.TrimSpace(lines[0])
 	password := strings.TrimSpace(lines[1])
 	//md5Hash := lines[1]
-	build := strings.Split(lines[2], "|")[0]
+	line2 := strings.Split(lines[2], "|")
+	if len(line2) < 2 {
+		return
+	}
+	build := line2[0]
 	timezone, err := strconv.Atoi(strings.Split(lines[2], "|")[1])
 	ip := client.RemoteAddr().(*net.TCPAddr).IP.String()
 	country, err := Utils.GetCountryFromIP(ip)
