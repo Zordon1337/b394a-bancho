@@ -21,7 +21,7 @@ type Match struct {
 	MatchId              byte
 	InProgress           bool
 	MatchType            byte
-	ActiveMods           int16
+	ActiveMods           int32
 	GameName             string
 	Password             string
 	BeatmapName          string
@@ -36,6 +36,8 @@ type Match struct {
 	TeamType             byte
 	LoadingPeople        int32
 	SkippingNeededToSkip int32
+	SpecialModes         byte
+	ModsSlot             [8]int32
 }
 
 func GetBytesFromMatch(match *Match, build int32) []byte {
@@ -59,9 +61,16 @@ func GetBytesFromMatch(match *Match, build int32) []byte {
 	if err != nil {
 		return nil
 	}
-	err = binary.Write(buf, binary.LittleEndian, match.ActiveMods)
-	if err != nil {
-		return nil
+	if build > 20120812 {
+		err = binary.Write(buf, binary.LittleEndian, (match.ActiveMods))
+		if err != nil {
+			return nil
+		}
+	} else {
+		err = binary.Write(buf, binary.LittleEndian, int16(match.ActiveMods))
+		if err != nil {
+			return nil
+		}
 	}
 	err = binary.Write(buf, binary.LittleEndian, Utils.WriteOsuString(match.GameName))
 	if err != nil {
@@ -129,6 +138,20 @@ func GetBytesFromMatch(match *Match, build int32) []byte {
 		err = binary.Write(buf, binary.LittleEndian, byte(match.TeamType))
 		if err != nil {
 			return nil
+		}
+	}
+	if build > 20120812 {
+		err = binary.Write(buf, binary.LittleEndian, byte(match.SpecialModes))
+		if err != nil {
+			return nil
+		}
+		if match.SpecialModes&0x001 > 0x0 {
+			for i := 0; i < 8; i++ {
+				err = binary.Write(buf, binary.LittleEndian, byte(match.ModsSlot[i]))
+				if err != nil {
+					return nil
+				}
+			}
 		}
 	}
 	return buf.Bytes()

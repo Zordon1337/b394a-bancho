@@ -255,10 +255,20 @@ func handleClient(client net.Conn) {
 					Utils.LogErr("Error occurred on MatchType creation: ", err.Error())
 					return
 				}
-				err = binary.Read(buf, binary.LittleEndian, &match.ActiveMods)
-				if err != nil {
-					Utils.LogErr("Error occurred on ActiveMods creation: ", err.Error())
-					return
+				if player.Build > 20120812 {
+					err = binary.Read(buf, binary.LittleEndian, &match.ActiveMods)
+					if err != nil {
+						Utils.LogErr("Error occurred on ActiveMods creation: ", err.Error())
+						return
+					}
+				} else {
+					var mods int16
+					err = binary.Read(buf, binary.LittleEndian, &mods)
+					if err != nil {
+						Utils.LogErr("Error occurred on ActiveMods creation: ", err.Error())
+						return
+					}
+					match.ActiveMods = int32(mods)
 				}
 				match.GameName, err = Utils.ReadOsuString(buf)
 				if err != nil {
@@ -326,6 +336,15 @@ func handleClient(client net.Conn) {
 					if err != nil {
 						Utils.LogErr("Error occurred on TeamType creation: ", err.Error())
 						return
+					}
+				}
+
+				if player.Build > 20120812 {
+					err = binary.Read(buf, binary.LittleEndian, &match.SpecialModes)
+					if match.SpecialModes&0x001 > 0x0 {
+						for i := 0; i < 8; i++ {
+							err = binary.Read(buf, binary.LittleEndian, &match.ModsSlot[i])
+						}
 					}
 				}
 				match.SlotStatus = [8]byte{4, 1, 1, 1, 1, 1, 1, 1}
@@ -522,10 +541,20 @@ func handleClient(client net.Conn) {
 			{
 				buf := bytes.NewReader(data)
 				match := player.CurrentMatch
-				err := binary.Read(buf, binary.LittleEndian, &match.MatchId)
-				if err != nil {
-					Utils.LogErr("Error occurred on MatchId creation: ", err.Error())
-					return
+				var matchidtemp int16
+				if player.Build > 1717 {
+					err := binary.Read(buf, binary.LittleEndian, &matchidtemp)
+					if err != nil {
+						Utils.LogErr("Error occurred on MatchId creation: ", err.Error())
+						return
+					}
+					match.MatchId = byte(matchidtemp)
+				} else {
+					err := binary.Read(buf, binary.LittleEndian, &match.MatchId)
+					if err != nil {
+						Utils.LogErr("Error occurred on MatchId creation: ", err.Error())
+						return
+					}
 				}
 				err = binary.Read(buf, binary.LittleEndian, &match.InProgress)
 				if err != nil {
@@ -537,10 +566,20 @@ func handleClient(client net.Conn) {
 					Utils.LogErr("Error occurred on MatchType creation: ", err.Error())
 					return
 				}
-				err = binary.Read(buf, binary.LittleEndian, &match.ActiveMods)
-				if err != nil {
-					Utils.LogErr("Error occurred on ActiveMods creation: ", err.Error())
-					return
+				if player.Build > 20120812 {
+					err = binary.Read(buf, binary.LittleEndian, &match.ActiveMods)
+					if err != nil {
+						Utils.LogErr("Error occurred on ActiveMods creation: ", err.Error())
+						return
+					}
+				} else {
+					var mods int16
+					err = binary.Read(buf, binary.LittleEndian, &mods)
+					if err != nil {
+						Utils.LogErr("Error occurred on ActiveMods creation: ", err.Error())
+						return
+					}
+					match.ActiveMods = int32(mods)
 				}
 				match.GameName, err = Utils.ReadOsuString(buf)
 				if err != nil {
@@ -610,6 +649,15 @@ func handleClient(client net.Conn) {
 						return
 					}
 				}
+
+				if player.Build > 20120812 {
+					err = binary.Read(buf, binary.LittleEndian, &match.SpecialModes)
+					if match.SpecialModes&0x001 > 0x0 {
+						for i := 0; i < 8; i++ {
+							err = binary.Read(buf, binary.LittleEndian, &match.ModsSlot[i])
+						}
+					}
+				}
 				for i := 0; i < 8; i++ {
 					if match.SlotId[i] != -1 {
 						plr := GetPlayerById(match.SlotId[i])
@@ -627,7 +675,7 @@ func handleClient(client net.Conn) {
 				if err != nil {
 					return
 				}
-				m.ActiveMods = mods
+				m.ActiveMods = int32(mods)
 				for i := 0; i < 8; i++ {
 					if m.SlotId[i] != -1 {
 						plr := GetPlayerById(m.SlotId[i])

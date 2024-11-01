@@ -140,6 +140,13 @@ func WriteUserStats(receiver Structs.Player, user Structs.Player, completeness b
 				return
 			}
 		}
+		if receiver.Build > 20120725 {
+
+			err = binary.Write(buffer, binary.LittleEndian, int16(0)) // PP, i don't have implemented so no pp
+			if err != nil {
+				return
+			}
+		}
 	}
 	resp, err := Utils.SerializePacket(int16(Utils.CalculatePacketOffset(int(build), int(12))), buffer.Bytes())
 	if err != nil {
