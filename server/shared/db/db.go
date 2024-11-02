@@ -797,7 +797,7 @@ func DoesMapExistInDB(checksum string) bool {
 	}
 	if requiresupdate {
 
-		db.Query("UPDATE `beatmaps` SET `mapname`= ? WHERE checksum = ?", Utils.GetBeatmap(checksum).Title, checksum)
+		db.Query("UPDATE `beatmaps` SET `mapname`= ? WHERE checksum = ?", Utils.GetBeatmap(checksum).Title+" - "+Utils.GetBeatmap(checksum).Version, checksum)
 	}
 	return false
 }
@@ -812,7 +812,7 @@ func SetStatus(checksum string, newstatus string) string {
 		db.Query("UPDATE `beatmaps` SET `status`= ? WHERE checksum = ?", newstatus, checksum)
 
 	} else {
-		db.Query("INSERT INTO `beatmaps`(`mapname`,`checksum`, `status`) VALUES (?,?,?)", Utils.GetBeatmap(checksum).Title, checksum, newstatus)
+		db.Query("INSERT INTO `beatmaps`(`mapname`,`checksum`, `status`) VALUES (?,?,?)", Utils.GetBeatmap(checksum).Title+" - "+Utils.GetBeatmap(checksum).Version, checksum, newstatus)
 	}
 	return "Successfully updated beatmap"
 }
