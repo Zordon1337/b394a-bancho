@@ -91,7 +91,6 @@ func HandleMsg(sender *Structs.Player, msg string, target string) string {
 			return "You are not an admin!"
 		}
 	}
-	fmt.Println(msg)
 	if strings.HasPrefix(msg, "!updatebeatmapstatus") {
 		id := db.GetUserIdByUsername(sender.Username)
 		if db.IsAdmin(id) {
@@ -130,6 +129,34 @@ func HandleMsg(sender *Structs.Player, msg string, target string) string {
 			return "You are not an admin!"
 		}
 	}
-
+	if strings.HasPrefix(msg, "!setcurrentmapstatus") {
+		uid := db.GetUserIdByUsername(sender.Username)
+		if db.IsAdmin(uid) {
+			id := sender.LastNp
+			if id == "" {
+				return "/np first"
+			}
+			args := strings.Split(msg, " ")
+			if len(args) < 2 {
+				return "Missing arguments! correct command: !setcurrentmapstatus <newstatus>"
+			}
+			status := args[1]
+			if sender.LastNpIsSet {
+				maps := Utils.GetBeatmapsBySetId(id)
+				for _, map1 := range maps {
+					db.SetStatus(map1.FileMD5, status)
+				}
+				return "OK(Set)"
+			} else {
+				maps := Utils.GetBeatmapsById(id)
+				for _, map1 := range maps {
+					db.SetStatus(map1.FileMD5, status)
+				}
+				return "OK(Single)"
+			}
+		} else {
+			return "You are not an admin!"
+		}
+	}
 	return ""
 }

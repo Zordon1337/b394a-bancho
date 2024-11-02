@@ -15,6 +15,11 @@ import (
 var connectionstring string = "test:test@tcp(127.0.0.1:3306)/osu!"
 var db *sql.DB
 
+type Score struct {
+	MapName    string  `json:"MapName"`
+	TotalScore int     `json:"TotalScore"`
+	Accuracy   float32 `json:"Accuracy"`
+}
 type User struct {
 	Username    string  `json:"Username"`
 	UserId      int     `json:"UserId"`
@@ -25,6 +30,7 @@ type User struct {
 	Rank        int32   `json:"Rank"`
 	JoinDate    string  `json:"JoinDate"`
 	LastOnline  string  `json:"LastOnline"`
+	TopScores   []Score `json:"topscores"`
 }
 
 func InitDatabase() {
@@ -75,9 +81,30 @@ func GetUserFromDatabase(username string) User {
 	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(&user.UserId, &user.Username, &user.RankedScore, &user.Accuracy, &user.PlayCount, &user.TotalScore, &user.Rank, &user.LastOnline, &user.JoinDate)
+	}
+	scoreRows, err := db.Query(`
+	SELECT b.mapname, s.totalscore, s.accuracy 
+	FROM scores s 
+	JOIN beatmaps b ON s.mapchecksum = b.checksum COLLATE utf8mb4_general_ci 
+	WHERE s.username = ? 
+	ORDER BY s.totalscore DESC 
+	LIMIT 5
+	`, username)
+	if err != nil {
+		Utils.LogErr(err.Error())
 		return *user
 	}
-	user.UserId = -1
+	defer scoreRows.Close()
+	for scoreRows.Next() {
+		var score Score
+		err := scoreRows.Scan(&score.MapName, &score.TotalScore, &score.Accuracy)
+		if err != nil {
+			Utils.LogErr(err.Error())
+			continue
+		}
+		user.TopScores = append(user.TopScores, score)
+	}
+
 	return *user
 }
 func RegisterUser(username string, password string) error {
