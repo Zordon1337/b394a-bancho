@@ -2,6 +2,7 @@ package BanchoBot
 
 import (
 	"fmt"
+	"retsu/Utils"
 	"retsu/cho/Structs"
 	db "retsu/shared/db"
 	"strings"
@@ -36,16 +37,16 @@ func GenerateProfile() *Structs.Player {
 	}
 	return &player
 }
-func HandleMsg(sender string, msg string, target string) string {
+func HandleMsg(sender *Structs.Player, msg string, target string) string {
 	if strings.HasPrefix(msg, "!ping") {
 		return "Pong!"
 	}
 	if strings.HasPrefix(msg, "!whoami") {
-		id := db.GetUserIdByUsername(sender)
-		return fmt.Sprintf("You are %s\nUserId: %d\nIsAdmin: %t\nIsRestricted: %t\nJoin Date: %s", sender, id, db.IsAdmin(id), db.IsRestricted(id), db.GetJoinDate(sender))
+		id := db.GetUserIdByUsername(sender.Username)
+		return fmt.Sprintf("You are %s\nUserId: %d\nIsAdmin: %t\nIsRestricted: %t\nJoin Date: %s", sender, id, db.IsAdmin(id), db.IsRestricted(id), db.GetJoinDate(sender.Username))
 	}
 	if strings.HasPrefix(msg, "!unrestrict") {
-		id := db.GetUserIdByUsername(sender)
+		id := db.GetUserIdByUsername(sender.Username)
 		if db.IsAdmin(id) {
 			args := strings.Split(msg, " ")
 			if len(args) < 2 {
@@ -67,7 +68,7 @@ func HandleMsg(sender string, msg string, target string) string {
 		}
 	}
 	if strings.HasPrefix(msg, "!restrict") {
-		id := db.GetUserIdByUsername(sender)
+		id := db.GetUserIdByUsername(sender.Username)
 		if db.IsAdmin(id) {
 			args := strings.Split(msg, " ")
 			if len(args) < 3 {
@@ -79,7 +80,7 @@ func HandleMsg(sender string, msg string, target string) string {
 				if db.IsRestricted(db.GetUserIdByUsername(username)) {
 					return "User is already restricted!"
 				} else {
-					db.RestrictUser(username, sender, reason)
+					db.RestrictUser(username, sender.Username, reason)
 					return "Succesfully restricted " + username
 				}
 			} else {
@@ -90,7 +91,7 @@ func HandleMsg(sender string, msg string, target string) string {
 		}
 	}
 	if strings.HasPrefix(msg, "!updatebeatmapstatus") {
-		id := db.GetUserIdByUsername(sender)
+		id := db.GetUserIdByUsername(sender.Username)
 		if db.IsAdmin(id) {
 			args := strings.Split(msg, " ")
 			if len(args) < 3 {
@@ -99,6 +100,15 @@ func HandleMsg(sender string, msg string, target string) string {
 			md5 := args[1]
 			status := args[2]
 			return db.SetStatus(md5, status)
+		} else {
+			return "You are not an admin!"
+		}
+	}
+	if strings.HasPrefix(msg, "!updatecurrentmap") {
+		id := db.GetUserIdByUsername(sender.Username)
+		if db.IsAdmin(id) {
+			md5 := sender.Status.BeatmapChecksum
+			return db.SetStatus(md5, string(Utils.GetBeatmap(md5).Approved))
 		} else {
 			return "You are not an admin!"
 		}

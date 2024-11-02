@@ -769,7 +769,7 @@ func SetStatus(checksum string, newstatus string) string {
 
 		db.Query("UPDATE `beatmaps` SET `status`= ? WHERE checksum = ?", newstatus, checksum)
 	} else {
-		db.Query("INSERT INTO `beatmaps`(`checksum`, `status`) VALUES (?,?)", checksum, newstatus)
+		db.Query("INSERT INTO `beatmaps`(`mapname`,`checksum`, `status`) VALUES (?,?,?)", Utils.GetBeatmap(checksum).Title, checksum, newstatus)
 	}
 	return "Successfully updated beatmap"
 }

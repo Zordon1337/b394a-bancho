@@ -814,7 +814,7 @@ func handleMsg(player Structs.Player, data []byte) {
 		}
 	}
 	playersMu.Unlock()
-	banchobotthoughts := BanchoBot.HandleMsg(sender, msg, target)
+	banchobotthoughts := BanchoBot.HandleMsg(&player, msg, target)
 	if banchobotthoughts != "" && target == "#osu" {
 		playersMu.Lock()
 		for _, player1 := range players {
@@ -830,7 +830,6 @@ func handleMsg(player Structs.Player, data []byte) {
 func handleStatus(player *Structs.Player, data []byte) {
 	var status byte
 	var bmapUpdate bool
-	var mods uint16
 	buf := bytes.NewReader(data)
 	err := binary.Read(buf, binary.LittleEndian, &status)
 	if err != nil {
@@ -856,9 +855,22 @@ func handleStatus(player *Structs.Player, data []byte) {
 			Utils.LogErr("Failed to read beatmapMd5:", err)
 			return
 		}
-		err = binary.Read(buf, binary.LittleEndian, &mods)
-		if err != nil {
-			Utils.LogErr("Error occurred while reading mods from " + player.Username)
+		if player.Build > 20120812 {
+			var mods uint16
+
+			err = binary.Read(buf, binary.LittleEndian, &mods)
+			if err != nil {
+				Utils.LogErr("Error occurred while reading mods from " + player.Username)
+			}
+			player.Status.CurrentMods = mods
+		} else {
+
+			var mods byte
+			err = binary.Read(buf, binary.LittleEndian, &mods)
+			if err != nil {
+				Utils.LogErr("Error occurred while reading mods from " + player.Username)
+			}
+			player.Status.CurrentMods = uint16(mods)
 		}
 		if player.Build > 483 {
 			err = binary.Read(buf, binary.LittleEndian, &player.Status.PlayMode)
@@ -869,11 +881,11 @@ func handleStatus(player *Structs.Player, data []byte) {
 			if err != nil {
 				Utils.LogErr("Error occurred while reading beatmapid from " + player.Username)
 			}
+			fmt.Println("Beatmap Id: ", player.Status.BeatmapId)
 		}
 
 		player.Status.StatusText = statusText
 		player.Status.BeatmapChecksum = beatmapMd5
-		player.Status.CurrentMods = mods
 	}
 	playersMu.Lock()
 	for _, player1 := range players {
