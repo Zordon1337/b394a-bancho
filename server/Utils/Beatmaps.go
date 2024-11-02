@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -47,6 +48,7 @@ type Beatmap struct {
 
 func GetBeatmap(md5 string) Beatmap {
 	url := "https://osu.direct/api/get_beatmaps?h=" + md5
+	fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -62,10 +64,103 @@ func GetBeatmap(md5 string) Beatmap {
 		fmt.Println("Error reading response body:", err)
 	}
 
-	var data Beatmap
-	err = json.Unmarshal(body, &data)
+	var beatmaps []Beatmap
+	err = json.Unmarshal([]byte(body), &beatmaps)
 	if err != nil {
 		fmt.Println("Error unmarshalling JSON:", err)
 	}
-	return data
+	var result *Beatmap
+	for _, beatmap := range beatmaps {
+		if beatmap.FileMD5 == md5 {
+			result = &beatmap
+			break
+		}
+	}
+	return *result
+}
+func GetBeatmapsBySetId(id string) []Beatmap {
+	url := "https://osu.direct/api/get_beatmaps?s=" + id
+	fmt.Println(url)
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Error: status code %d\n", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+	}
+
+	var beatmaps []Beatmap
+	err = json.Unmarshal([]byte(body), &beatmaps)
+	if err != nil {
+		fmt.Println("Error unmarshalling JSON:", err)
+	}
+	return *&beatmaps
+}
+func GetBeatmapById(id string) Beatmap {
+	url := "https://osu.direct/api/get_beatmaps?s=" + id
+	fmt.Println(url)
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Error: status code %d\n", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+	}
+
+	var beatmaps []Beatmap
+	err = json.Unmarshal([]byte(body), &beatmaps)
+	if err != nil {
+		fmt.Println("Error unmarshalling JSON:", err)
+	}
+	integ, err := strconv.Atoi(id)
+	if err != nil {
+		fmt.Println("Failed converting string to int in BeatmapBySetId")
+	}
+	var result *Beatmap
+	for _, beatmap := range beatmaps {
+		if beatmap.BeatmapID == integ {
+			result = &beatmap
+			break
+		}
+	}
+	return *result
+}
+func GetBeatmapsById(id string) []Beatmap {
+	url := "https://osu.direct/api/get_beatmaps?b=" + id
+	fmt.Println(url)
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Error: status code %d\n", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+	}
+
+	var beatmaps []Beatmap
+	err = json.Unmarshal([]byte(body), &beatmaps)
+	if err != nil {
+		fmt.Println("Error unmarshalling JSON:", err)
+	}
+	return *&beatmaps
 }

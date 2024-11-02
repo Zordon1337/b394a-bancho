@@ -5,6 +5,7 @@ import (
 	"retsu/Utils"
 	"retsu/cho/Structs"
 	db "retsu/shared/db"
+	"strconv"
 	"strings"
 )
 
@@ -90,6 +91,7 @@ func HandleMsg(sender *Structs.Player, msg string, target string) string {
 			return "You are not an admin!"
 		}
 	}
+	fmt.Println(msg)
 	if strings.HasPrefix(msg, "!updatebeatmapstatus") {
 		id := db.GetUserIdByUsername(sender.Username)
 		if db.IsAdmin(id) {
@@ -105,13 +107,27 @@ func HandleMsg(sender *Structs.Player, msg string, target string) string {
 		}
 	}
 	if strings.HasPrefix(msg, "!updatecurrentmap") {
-		id := db.GetUserIdByUsername(sender.Username)
-		if db.IsAdmin(id) {
-			md5 := sender.Status.BeatmapChecksum
-			return db.SetStatus(md5, string(Utils.GetBeatmap(md5).Approved))
+		uid := db.GetUserIdByUsername(sender.Username)
+		if db.IsAdmin(uid) {
+			id := sender.LastNp
+			if id == "" {
+				return "/np first"
+			}
+			if sender.LastNpIsSet {
+				maps := Utils.GetBeatmapsBySetId(id)
+				for _, map1 := range maps {
+					db.SetStatus(map1.FileMD5, strconv.Itoa(map1.Approved))
+				}
+			} else {
+				maps := Utils.GetBeatmapsById(id)
+				for _, map1 := range maps {
+					db.SetStatus(map1.FileMD5, strconv.Itoa(map1.Approved))
+				}
+			}
 		} else {
 			return "You are not an admin!"
 		}
 	}
+
 	return ""
 }

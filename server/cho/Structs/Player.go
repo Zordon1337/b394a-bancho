@@ -16,4 +16,6 @@ type Player struct {
 	Build               int64
 	Spectators          map[int32]*Player
 	CurrentlySpectating *Player
+	LastNp              string
+	LastNpIsSet         bool
 }

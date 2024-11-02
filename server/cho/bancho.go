@@ -208,7 +208,7 @@ func handleClient(client net.Conn) {
 			}
 		case 1: // irc msg
 			{
-				handleMsg(player, data)
+				handleMsg(&player, data)
 				break
 			}
 		case 2: // osu quit
@@ -792,7 +792,7 @@ func handleClient(client net.Conn) {
 		}
 	}
 }
-func handleMsg(player Structs.Player, data []byte) {
+func handleMsg(player *Structs.Player, data []byte) {
 	buf := bytes.NewReader(data)
 	Utils.ReadOsuString(buf)
 	sender := player.Username // for some reason sender is empty???
@@ -813,8 +813,24 @@ func handleMsg(player Structs.Player, data []byte) {
 			Packets.WriteMessage(player1.Conn, sender, msg, target, int(player.Build))
 		}
 	}
+
+	if strings.Contains(msg, "ACTION is listening") {
+		if strings.Contains(msg, "/s/") {
+			re := regexp.MustCompile(`/s/(\d+)\b`)
+			id := re.FindStringSubmatch(msg)
+			player.LastNp = id[1]
+			player.LastNpIsSet = true
+		} else if strings.Contains(msg, "/b/") {
+			re := regexp.MustCompile(`/b/(\d+)\b`)
+			id := re.FindStringSubmatch(msg)
+			player.LastNp = id[1]
+			player.LastNpIsSet = false
+		}
+		fmt.Println(player.LastNp)
+	}
+
 	playersMu.Unlock()
-	banchobotthoughts := BanchoBot.HandleMsg(&player, msg, target)
+	banchobotthoughts := BanchoBot.HandleMsg(player, msg, target)
 	if banchobotthoughts != "" && target == "#osu" {
 		playersMu.Lock()
 		for _, player1 := range players {
