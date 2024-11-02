@@ -118,11 +118,13 @@ func HandleMsg(sender *Structs.Player, msg string, target string) string {
 				for _, map1 := range maps {
 					db.SetStatus(map1.FileMD5, strconv.Itoa(map1.Approved))
 				}
+				return "OK(Set)"
 			} else {
 				maps := Utils.GetBeatmapsById(id)
 				for _, map1 := range maps {
 					db.SetStatus(map1.FileMD5, strconv.Itoa(map1.Approved))
 				}
+				return "OK(Single)"
 			}
 		} else {
 			return "You are not an admin!"
