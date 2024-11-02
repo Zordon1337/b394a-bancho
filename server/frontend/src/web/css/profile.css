@@ -121,7 +121,7 @@ body {
 }
 .content-right {
     text-align: center; 
-    width: 50%; 
+    width: 75%; 
     position: relative;
     z-index: 2; 
 }
