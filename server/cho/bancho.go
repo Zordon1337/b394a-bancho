@@ -85,7 +85,6 @@ func handleClient(client net.Conn) {
 	re := regexp.MustCompile(`\D`)
 	cleaned := re.ReplaceAllString(build, "")
 	build2, err := strconv.ParseInt(cleaned, 0, 64)
-	fmt.Println(cleaned)
 	player := Structs.Player{
 		Username:  (username),
 		Conn:      client,
@@ -370,7 +369,7 @@ func handleClient(client net.Conn) {
 							Packets.WriteAnnounce(player.Conn, "Player that you want spectate, has too new client", int(player.Build))
 							break
 						}
-						fmt.Printf("%s started spectating %s\n", player.Username, player1.Username)
+						Utils.LogInfo("%s started spectating %s\n", player.Username, player1.Username)
 						Packets.WriteSpecJoined(player1.Conn, player.Stats.UserID, int(player1.Build))
 						if player1.Spectators == nil {
 							player1.Spectators = make(map[int32]*Structs.Player)
@@ -398,7 +397,7 @@ func handleClient(client net.Conn) {
 						delete(player1.Spectators, player.Stats.UserID)
 					}
 					player.CurrentlySpectating = nil
-					fmt.Printf("%s stopped spectating %s\n", player.Username, player1.Username)
+					Utils.LogInfo("%s stopped spectating %s\n", player.Username, player1.Username)
 
 				}
 				break
@@ -410,7 +409,7 @@ func handleClient(client net.Conn) {
 					if err != nil {
 						break
 					}
-					fmt.Printf("%s sent replay frames to %s\n", player.Username, player1.Username)
+					//Utils.LogInfo("%s sent replay frames to %s\n", player.Username, player1.Username)
 					player1.Conn.Write(packet)
 				}
 				break
@@ -826,7 +825,6 @@ func handleMsg(player *Structs.Player, data []byte) {
 			player.LastNp = id[1]
 			player.LastNpIsSet = false
 		}
-		fmt.Println(player.LastNp)
 	}
 
 	playersMu.Unlock()
@@ -897,7 +895,6 @@ func handleStatus(player *Structs.Player, data []byte) {
 			if err != nil {
 				Utils.LogErr("Error occurred while reading beatmapid from " + player.Username)
 			}
-			fmt.Println("Beatmap Id: ", player.Status.BeatmapId)
 		}
 
 		player.Status.StatusText = statusText
