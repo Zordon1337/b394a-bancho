@@ -663,6 +663,10 @@ func GetMapStatus(checksum string) string {
 	for rows.Next() {
 		var status string
 		rows.Scan(&status)
+		if status == "-2" {
+			// graveyarded
+			return "0"
+		}
 		return status
 	}
 	return "-1"
