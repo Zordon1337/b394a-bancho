@@ -83,12 +83,17 @@ func GetUserFromDatabase(username string) User {
 		rows.Scan(&user.UserId, &user.Username, &user.RankedScore, &user.Accuracy, &user.PlayCount, &user.TotalScore, &user.Rank, &user.LastOnline, &user.JoinDate)
 	}
 	scoreRows, err := db.Query(`
-	SELECT b.mapname, s.totalscore, s.accuracy 
-	FROM scores s 
-	JOIN beatmaps b ON s.mapchecksum = b.checksum COLLATE utf8mb4_general_ci 
-	WHERE s.username = ? 
-	ORDER BY s.totalscore DESC 
-	LIMIT 5
+	SELECT b.mapname, s.totalscore, s.accuracy
+    FROM (
+        SELECT mapchecksum, MAX(totalscore) AS max_score
+        FROM scores
+        WHERE username = ?
+        GROUP BY mapchecksum
+    ) AS best_scores
+    JOIN scores s ON best_scores.mapchecksum = s.mapchecksum COLLATE utf8mb4_general_ci AND best_scores.max_score = s.totalscore
+    JOIN beatmaps b ON s.mapchecksum = b.checksum COLLATE utf8mb4_general_ci
+    ORDER BY s.totalscore DESC
+    LIMIT 5
 	`, username)
 	if err != nil {
 		Utils.LogErr(err.Error())
@@ -778,15 +783,21 @@ func RestrictUser(username string, admin string, reason string) {
 }
 
 func DoesMapExistInDB(checksum string) bool {
-
-	rows, err := db.Query("SELECT status from beatmaps WHERE checksum = ?", checksum)
+	requiresupdate := false
+	rows, err := db.Query("SELECT status, mapname from beatmaps WHERE checksum = ?", checksum)
 	if err != nil {
 		return false
 	}
 	for rows.Next() {
 		var status string
-		rows.Scan(&status)
+		var mapname string
+		rows.Scan(&status, &mapname)
+		requiresupdate = mapname == ""
 		return true
+	}
+	if requiresupdate {
+
+		db.Query("UPDATE `beatmaps` SET `mapname`= ? WHERE checksum = ?", Utils.GetBeatmap(checksum).Title, checksum)
 	}
 	return false
 }
@@ -799,6 +810,7 @@ func SetStatus(checksum string, newstatus string) string {
 	if DoesMapExistInDB(checksum) {
 
 		db.Query("UPDATE `beatmaps` SET `status`= ? WHERE checksum = ?", newstatus, checksum)
+
 	} else {
 		db.Query("INSERT INTO `beatmaps`(`mapname`,`checksum`, `status`) VALUES (?,?,?)", Utils.GetBeatmap(checksum).Title, checksum, newstatus)
 	}
