@@ -14,6 +14,37 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById("PlayCount").textContent = `Play Count: ${response.PlayCount}`
         document.getElementById("JoinDate").textContent = `Join Date: ${response.JoinDate}`
         document.getElementById("LastOnline").textContent = `Last Online: ${response.LastOnline}`
+        const topScores = response.topscores;
+        const table = document.createElement('table');
+        table.className = 'top-scores-table';
+
+        const headerRow = document.createElement('tr');
+        const headers = ['Map Name', 'Total Score', 'Accuracy'];
+        headers.forEach(headerText => {
+            const th = document.createElement('th');
+            th.textContent = headerText;
+            headerRow.appendChild(th);
+        });
+        table.appendChild(headerRow);
+
+        topScores.forEach(score => {
+            const row = document.createElement('tr');
+            const mapNameCell = document.createElement('td');
+            mapNameCell.textContent = score.MapName;
+
+            const totalScoreCell = document.createElement('td');
+            totalScoreCell.textContent = score.TotalScore.toLocaleString();
+
+            const accuracyCell = document.createElement('td');
+            accuracyCell.textContent = `${(score.Accuracy * 100).toFixed(2)}%`; 
+
+            row.appendChild(mapNameCell);
+            row.appendChild(totalScoreCell);
+            row.appendChild(accuracyCell);
+            table.appendChild(row);
+        });
+
+        document.getElementById('top5scoresdiv').appendChild(table);
     } else {
         
     }

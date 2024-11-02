@@ -125,3 +125,7 @@ body {
     position: relative;
     z-index: 2; 
 }
+.top-scores-table {
+    margin: auto;
+    border: 1px solid white;
+}
